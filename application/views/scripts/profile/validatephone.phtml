@@ -1,0 +1,60 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	
+	$id = decode($request->id);
+	$type = $request->type;
+	if(isEmptyString($type)){
+		$type = 1;
+	}
+	$user = new UserAccount();
+	$user->populate($id);
+	// debugMessage($user->toArray());
+	$provider = $user->getProvider($type);
+		
+	$title = "Validate Phone"; 
+	$this->headTitle($title);
+	
+?>
+<script>
+	$(document).ready(function() {
+		
+	}); 
+</script>
+<style>
+body {
+	overflow:hidden;
+}
+</style>
+<form class="form-horizontal well popup span6" id="indexform" action="<?php echo $this->baseUrl("profile/create"); ?>" method="post">
+    <table class="table">
+		<?php if($sessionhaserror) { ?>
+	        <tr>
+	        	<td colspan="2"><div class="alert alert-error"><?php echo $session->getVar(ERROR_MESSAGE); ?></div></td>
+	        </tr>
+        <?php } ?>
+        <tr>
+            <td width="25%"><label class="control-label">Phone Number:</label></td>
+            <td>
+            	<?php echo $user->getFormattedPhone($type); ?>
+                <input type="hidden" id="id" name="id" value="<?php echo $user->getID(); ?>" />
+                <input type="hidden" id="phonetype" name="phonetype" value="<?php echo $type; ?>" />
+			    <input type="hidden" name="<?php echo URL_FAILURE; ?>" value="<?php echo encode($this->baseUrl('profile/validatephone')); ?>" />			   				
+                <input type="hidden" name="<?php echo URL_SUCCESS; ?>" value="<?php echo encode($this->baseUrl('profile/validatephonesuccess')); ?>" />
+            </td>
+		</tr>
+        <tr>
+            <td width="25%"><label class="control-label">Provider:</label></td>
+            <td><?php echo $provider; ?></td>
+		</tr>
+        <tr>
+        	<td colspan="2">
+            	<div style="padding:5px 5px;" class="alert alert-info margin5">Your Phone Number uniquely identifies all your Payment Transactions. <br /><br />We therefore need to confirm that this number belongs to you. To validate your phone, you are required to request an activation code. <br /><br />Check your sms inbox after a few moments and enter the <b>6 Digit Code</b> that we shall send you to complete verification <br /><br />
+                <h2 class="centeralign">To continue click 'Request Code'</h2></div>
+            </td>
+        </tr>
+  </table>
+</form>
+
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

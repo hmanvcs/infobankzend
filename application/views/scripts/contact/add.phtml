@@ -1,0 +1,271 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	
+	$contact = new Contact(); 
+	if(!isEmptyString($request->farmerid)){
+		$contact->setFarmerID(decode($request->farmerid));
+	} 
+		
+	$contact->setContactType(1);
+	$contact->setVisibility(1);
+	
+	#in case of errors in session, populate the fields from session
+	if(!isEmptyString($session->getVar(ERROR_MESSAGE))){ 
+		$contact->processPost($session->getVar(FORM_VALUES));	
+	}
+	
+	$title = $this->translate("contact_pagetitle_new"); 
+	$this->headTitle($title);
+	
+?>
+<script>
+	$(document).ready(function() {
+		$("#indexform").validate({		
+			// define the validation rules one field at a time
+			rules: {
+				firstname: "required",
+				lastname: "required",
+				orgname: "required",
+				phone: "required",					
+				gender: "required",
+				email: {
+					required:false,
+					email: true
+				},
+				categoryid: "required"
+			}, 
+			// the messages for each of the fields being validated
+			messages: {		
+				firstname: "<?php echo $this->translate("contact_firstname_error"); ?>",
+				lastname: "<?php echo $this->translate("contact_lastname_error"); ?>",
+				orgname: "<?php echo $this->translate("contact_orgname_error"); ?>",
+				phone: "<?php echo $this->translate("contact_phone_error"); ?>",
+				gender: "<?php echo $this->translate("contact_gender_error"); ?>",
+				email: {					
+					email: "<?php echo $this->translate("contact_invalid_email_error"); ?>"
+				},
+				categoryid: "<?php echo $this->translate("contact_category_error"); ?>"			
+			},
+			// custom error positions
+			errorPlacement: function(error, element) {
+				switch(element.attr("name")){					
+					default:
+						error.appendTo("#"+element.attr("name")+"_error")
+						break;
+				}			
+			}
+		});
+		
+		// tooltips in popup
+		$(".hastooltip").each(function(){		
+			var theid = $(this).attr('id');
+			var thepath = '<?php echo $this->baseUrl('images/questionmark.png'); ?>';
+			if($(this).attr('title') != "undefined" || $(this).attr('title') != ""){
+				$('<a href="javascript: void(0);" class="qcontainer" id="q_'+theid+'"><img src="'+thepath+'" /></a>').insertAfter(this);
+				$("#q_"+theid).attr('title', $(this).attr('title')).addClass('qtooltip');
+			}	    
+		}); 
+		$('.qtooltip').tipsy({fade: true, gravity: 'w', html: true, trigger: 'hover', offset: -5});
+    	$(".hastooltip").attr('title','');
+		
+		// reset tab index
+		var tabindex = 1;
+		$('input,select').each(function() {
+			if (this.type != "hidden") {
+				var $input = $(this);
+				$input.attr("tabindex", tabindex);
+				tabindex++;
+			}
+		});
+		
+		//trigger a click action on the selected radio button to enable and disable the approprate fields
+		<?php if($contact->isPerson()){ ?>
+			// show the person only fields
+			$("#contacttype-1").click();			
+			disableContainerByClass("company");	
+			enableContainerByClass("person");
+		<?php } else { ?>		
+			// show the company only fields			
+			$("#contacttype-2").click();
+			disableContainerByClass("person");
+			enableContainerByClass("company");
+			
+		<?php } ?>
+		
+		// when the person contact is selected, hide the contact tbody and disable all inputs in it
+		$("#contacttype-1").click(function() {
+			// hide the company rows, disable any HTML controls. Enable the person rows and enable all controls in those rows
+			disableContainerByClass("company");	
+			enableContainerByClass("person");
+		});
+		
+		// when the company contact is selected, hide the person tbody and disable all inputs in it
+		$("#contacttype-2, #contacttype-3, #contacttype-4, #contacttype-5").click(function() {
+			// hide the person rows, disable any HTML controls. Enable the company rows and enable all controls in those rows
+			enableContainerByClass("company");	
+			disableContainerByClass("person");
+		});	
+		
+	}); 
+</script>
+<style>
+body {
+	overflow:hidden;
+}
+.form-horizontal.well {
+	margin:0;
+	padding-top:0;
+	padding-bottom:0;
+	width:93%;
+}
+.form-horizontal .control-label {
+	font-size: 11px;
+	padding-top:3px;
+	width: 130px;
+}
+.form-horizontal .control-label.gender {
+	width: 60px;
+	display:inline-block;
+}
+.form-horizontal input {
+	height:15px;
+}
+.form-horizontal select {
+	height:25px;
+	font-size: 12px;
+}
+.form-horizontal .table td {
+	vertical-align: middle;
+}
+.form-horizontal .table tr:last-child td {
+	height:10px;
+}
+.form-horizontal .table tbody {
+	border-top:none;
+}
+.radio.inline, .checkbox.inline {
+	display:inline-block;
+	margin-bottom: 1px;
+    padding-top: 0;
+}
+.radio input[type="radio"], .checkbox input[type="checkbox"] {
+	margin-top:1px;
+}
+
+</style>
+<form class="form-horizontal well span6" id="indexform" action="<?php echo $this->baseUrl("contact/create"); ?>" method="post">
+    <table class="table">
+		<?php if($sessionhaserror) { ?>
+	        <tr>
+	        	<td colspan="2"><div class="alert alert-error"><?php echo $session->getVar(ERROR_MESSAGE); ?></div></td>
+	        </tr>
+        <?php } ?>
+        <tr>
+          <td width="30%"><label class="control-label"><?php echo $this->translate("contact_contactytype_label"); ?>: <?php echo $this->translate("global_required_field_marker"); ?></label></td>
+          <td><?php 	
+                $con = new Zend_Form_Element_Radio('contacttype',
+					  array(
+							  'multiOptions' => array("1" => "Person", "2" => "Organization"/*, "3" => "Cooperative", "4" => "Association", "5" => "Parastatal"*/), 
+							  'view' => new Zend_View(),
+							  'disableLoadDefaultDecorators' => true,
+							  'separator' => '&nbsp;&nbsp;&nbsp;&nbsp;',
+							  'decorators' => array('ViewHelper',
+												  array('HtmlTag', array('tag' => 'div', 'class' => array('inline', 'radio', 'zendradio'))) // use a sorrounding DIV with classes which are copied to the label by JQuery
+											  )
+					  )
+				);
+				$con->setValue('');
+				echo $con->render();
+            ?>
+            <input type="hidden" name="entityname" value="Contact" />
+            <input type="hidden" id="id" name="id" value="<?php echo encode($contact->getID()); ?>" />
+            <?php if(!isEmptyString($contact->getFarmerID())) { ?>
+            <input type="hidden" id="farmerid" name="farmerid" value="<?php echo $contact->getFarmerID(); ?>" />
+            <?php } ?>
+			<?php if(!isEmptyString($contact->getFarmGroupID())) { ?>
+            <input type="hidden" id="farmgroupid" name="farmgroupid" value="<?php echo $contact->getFarmGroupID(); ?>" />
+            <?php } ?>
+            <input type="hidden" name="<?php echo URL_SUCCESS; ?>" value="<?php echo encode($this->baseUrl('contact/addsuccess')); ?>" />
+            </td>
+        </tr>
+        <tr class="gender person">
+        	<td><label class="control-label"><?php echo $this->translate("contact_gender_label"); ?>: <?php echo $this->translate("global_required_field_marker"); ?></label></td>
+            <td><?php						  
+				  $genderradio = new Zend_Form_Element_Radio('gender',
+						  array(
+								  'multiOptions' => array('1' => 'Male', '2' => 'Female'), 
+								  'view' => new Zend_View(),
+								  'disableLoadDefaultDecorators' => true,
+								  'separator' => '&nbsp;&nbsp;&nbsp;&nbsp;',
+								  'decorators' => array('ViewHelper',
+													  array('HtmlTag', array('tag' => 'div', 'class' => array('inline', 'radio', 'zendradio'))) // use a sorrounding DIV with classes which are copied to the label by JQuery
+												  )
+						  )
+				  );
+				  $genderradio->setValue('');
+				  echo $genderradio->render();
+			  ?>
+			  <div id="gender_error"></div></td>
+		</tr>
+        <tr class="person">
+            <td><label class="control-label" for="firstname"><?php echo $this->translate("contact_firstname_label"); ?>: <?php echo $this->translate("global_required_field_marker"); ?></label></td>
+            <td><input type="text" name="firstname" id="firstname" class="span3 hastooltip" value="<?php echo $contact->getFirstName(); ?>" title="<?php echo $this->translate("contact_firstname_tooltip"); ?>"  /><div id="firstname_error"></div>
+            </td>
+        </tr>
+        <tr class="person">
+            <td><label class="control-label"><?php echo $this->translate("contact_lastname_label"); ?>: <?php echo $this->translate("global_required_field_marker"); ?></label></td>
+            <td><input type="text" name="lastname" id="lastname" class="span3 hastooltip" value="<?php echo $contact->getLastName(); ?>" title="<?php echo $this->translate("contact_lastname_tooltip"); ?>" /><div id="lastname_error"></div></td>
+        </tr>
+        <tr class="company">
+            <td><label class="control-label"><?php echo $this->translate("contact_companyname_label"); ?>: <?php echo $this->translate("global_required_field_marker"); ?></label></td>
+            <td><input type="text" name="orgname" id="orgname" class="span3 hastooltip" value="<?php echo $contact->getOrgName(); ?>" title="<?php echo $this->translate("contact_orgname_tooltip"); ?>" /><div id="orgname_error"></div></td>
+        </tr>        
+        <tr>
+            <td><label class="control-label"><?php echo $this->translate("contact_phone_label"); ?>: <?php echo $this->translate("global_required_field_marker"); ?></label></td>
+            <td><input type="text" name="phone" id="phone" class="span2 hastooltip" title="<?php echo $this->translate("contact_phone_ooltip"); ?>" value="<?php echo $contact->getPhone(); ?>" /><div id="phone_error"></div></td>
+        </tr>
+        <tr>
+            <td><label class="control-label"><?php echo $this->translate("contact_email_label"); ?>:</label></td>
+            <td><input type="text" name="email" id="email" class="span3 hastooltip" title="<?php echo $this->translate("contact_email_ooltip"); ?>" value="<?php echo $contact->getEmail(); ?>" /><div id="email_error"></div></td>
+        </tr>
+        <tr>
+            <td><label class="control-label"><?php echo $this->translate("contact_category_label"); ?>: <?php echo $this->translate("global_required_field_marker"); ?></label></td>
+            <td><?php
+                    $categorylookup = getTopLevelCategories("");
+                    $catdropdown = new Zend_Form_Element_Select('categoryid',
+                                        array(
+                                            'multiOptions' => array_merge_maintain_keys(array('' => '<Select One>'), $categorylookup),								
+                                            'view' => new Zend_View(),
+                                            'decorators' => array('ViewHelper'),
+                                            'class' => array("filterselect", 'span3','hastooltip'),
+											'title' => $this->translate("contact_categoryid_tooltip")
+                                        )
+                                    );
+                    $catdropdown->setValue($contact->getTheCategoryID()); 
+                    echo $catdropdown->render();
+                  ?><div id="categoryid_error"></div></td>
+        </tr>
+        <tr>
+          <td><label class="control-label"><?php echo $this->translate("contact_visibility_label"); ?>:</label></td>
+          <td><?php 	
+                $visibility = new Zend_Form_Element_Radio('visibility',
+					  array(
+							  'multiOptions' => array("1" => "Only me", "2" => "Farm Group", "3" => "Everyone"), 
+							  'view' => new Zend_View(),
+							  'disableLoadDefaultDecorators' => true,
+							  'separator' => '&nbsp;&nbsp;&nbsp;&nbsp;',
+							  'class' => array('hastooltip_custom'),
+							  'decorators' => array('ViewHelper',
+												  array('HtmlTag', array('tag' => 'div', 'class' => array('inline', 'radio', 'zendradio'))) // use a sorrounding DIV with classes which are copied to the label by JQuery
+											  )
+					  )
+				);
+				$visibility->setValue($contact->getVisibility());
+				echo $visibility->render();
+            ?>&nbsp;&nbsp;<span id="tooltip_visibility"></span></td>
+        </tr>
+  </table>
+</form>
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

@@ -1,0 +1,295 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	
+	# Load the profile, if no ID provided then use the profile of the currently logged in user
+	$user = new UserAccount(); 
+	if(isEmptyString($request->id)){
+		$user->populate($userid);
+	} else {
+		$user->populate(decode($request->id));
+	}
+	
+	$id = $user->getID();	
+	$name = $user->getName();
+	$firstname = $user->getFirstName();
+	
+	$isme = false;
+	if($userid == $user->getID()){
+		$isme = true;
+	}
+	
+	$button_title = $this->translate("profile_button_save");
+	$posturl = $this->baseUrl("profile/edit"); 
+	
+	#in case of errors in session, populate the fields from session
+	if(!isEmptyString($session->getVar(ERROR_MESSAGE))){ 
+		$user->processPost($session->getVar(FORM_VALUES));		
+	}
+	// set the default tab
+	if (isEmptyString($request->tab)) {
+		$request->setParam('tab','basics'); 
+	}
+	
+	if($request->tab == 'basics') {
+		// address 
+		$address = $user->getAddresses()->get(0);
+		
+		// primary phone
+		$phone = $user->getFormattedPhone(1);
+		$validated = false;
+		$valid_text = '';
+		if(!isEmptyString($phone)){
+			$valid_text = '&nbsp; (Unconfirmed)';
+		}
+		$allowrevalidate = false;
+		if(!isEmptyString($phone) && $user->isValidated(1)){
+			$validated = true;
+			$valid_text = '&nbsp; <span class="pagedescription" style="color:#55A411;">(Confirmed)</span';
+		}
+		if($user->hasPendingActivation(1)){
+			$allowrevalidate = true;
+		}
+		
+		// alt phone
+		$altphone = $user->getFormattedPhone(2);		
+		$svalidated = false;
+		$svalid_text = '';
+		if(!isEmptyString($altphone)){
+			$svalid_text = '&nbsp; (Unconfirmed)';
+		}
+		$sallowrevalidate = false;
+		if($user->isValidated(2)){
+			$svalidated = true;
+			$svalid_text = '&nbsp; <span class="pagedescription" style="color:#55A411;">(Confirmed)</span';
+		}
+		if($user->hasPendingActivation(2)){
+			$sallowrevalidate = true;
+		}
+	}
+	
+	// debugMessage(toArray());
+	$title = "Update Profile";
+	$this->headTitle($title);
+?>
+<script>
+$(document).ready(function() {
+	// disable editing counntry	
+	disableField("country");
+	
+	<?php if($request->tab == 'basics') { ?>
+		$("#profileform-basics").validate({		
+			// define the validation rules one field at a time
+			rules: {
+				gender: "required",
+				firstname: "required",
+				lastname: "required",
+				country: "required"
+			}, 
+			// the messages for each of the fields being validated
+			messages: {		
+				gender: "<?php echo $this->translate("profile_gender_error"); ?>",
+				firstname: "<?php echo $this->translate("profile_firstname_error"); ?>",
+				lastname: "<?php echo $this->translate("profile_lastname_error"); ?>",
+				country: "<?php echo $this->translate("profile_country_error"); ?>"
+			},
+			// custom error positions
+			errorPlacement: function(error, element) {
+				switch(element.attr("name")){					
+					default:
+						if(element.hasClass("useid_error")){
+							error.appendTo("#"+element.attr("id")+"_error");
+						} else {
+							error.appendTo("#"+element.attr("name")+"_error");
+						}
+						break;
+				}			
+			}
+		});
+		
+		// basics custom failure and success url
+		$("#profileform-basics .savethenview").click(function() {
+			$("#profileform-basics .successurl").val('<?php echo encode($this->baseUrl('profile/view/tab/basics')); ?>');
+			$("#profileform-basics .failureurl").val('<?php echo encode($this->baseUrl('profile/index/id/'.encode($user->getID()).'/tab/basics')); ?>');
+		});
+	<?php } ?>
+	
+	<?php if($request->tab == 'personal') { ?>
+		
+	<?php } ?>
+	
+	<?php if($request->tab == 'contacts') { ?>
+		
+	<?php } ?>
+}); 
+</script>
+<style>
+.form-horizontal .control-label {
+	width:0;
+	white-space:nowrap;
+	text-align:left;
+}
+.form-horizontal div.radio.inline {
+	padding-left:0;
+	margin-left:5px;
+}
+.form-horizontal div.zendradio .radio {
+	padding-left:15px;
+	margin-left:0;
+}
+select.country {
+	width:180px;
+}
+select.country2 {
+	width:150px;
+}
+select.chzn-select#locationid, select.chzn-select#locationid2 {
+	width:170px;
+}
+select#salutation {
+	width:95px;
+}
+#phone, #phone2 {
+	width:160px;
+}
+#email, #email2 {
+	width:210px;
+}
+#center .ui-widget-content {
+	width:100%;
+	float:left;
+}
+.alert.alert-success {
+	width:90%;
+}
+</style>
+<div id="tabs">
+    <?php require APPLICATION_PATH."/views/scripts/profile/profileleftcolumn.phtml"; ?>
+    <div class="span9 tab-content" id="center">   
+        <div id="basics">
+            <h2>Update Profile</h2>
+            <form id="profileform-basics" class="form-horizontal basics" action="<?php echo $posturl; ?>" method="post">
+            <?php if($request->tab == 'basics'){ ?>
+        	<div class="row" style="margin-left:0px;">
+				<?php if(!isEmptyString($session->getVar(SUCCESS_MESSAGE)) ){ ?>
+                    <div class="alert alert-success"><a class="close" data-dismiss="alert">×</a><?php echo $session->getVar(SUCCESS_MESSAGE); ?></div>
+                <?php } ?>	
+                <?php if($sessionhaserror) { ?>
+                    <div class="alert alert-error"><?php echo $session->getVar(ERROR_MESSAGE); ?></div>
+                <?php } ?>
+                <span class="span6 marginleft0" style="width:72%;">
+                    <div id="row1_left" class="well lighter row marginleft0" style="height:auto; padding-left:10px;">                        
+                        <table class="table nohover">                       
+                           <tr>
+                                <td width="50%"><label class="control-label"><?php echo $this->translate("profile_firstname_label"); ?>: <?php echo $this->translate("global_required_field_marker"); ?></label>
+                                <input name="firstname" id="firstname" type="text" class="hastooltip" style="width:75%;" value="<?php echo $user->getFirstName(); ?>" title="<?php echo $this->translate("profile_firstname_tooltip"); ?>" /><div id="firstname_error"></div></td>
+                                <td><label class="control-label"><?php echo $this->translate("profile_lastname_label"); ?>: <?php echo $this->translate("global_required_field_marker"); ?></label>
+                                <input name="lastname" id="lastname" type="text" class="hastooltip" style="width:75%;" value="<?php echo $user->getLastName(); ?>" title="<?php echo $this->translate("profile_lastname_tooltip"); ?>" /><div id="lastname_error"></div></td>                                                             
+                            </tr>
+                            <tr>		                    
+                                <td><label class="control-label"><?php echo $this->translate("profile_emailonly_label"); ?>:</label><?php echo $user->getEmail(); ?>
+                                	<input type="hidden" name="email" id="email" value="<?php echo $user->getEmail(); ?>" /></td>
+                                <td><label class="control-label"><?php echo $this->translate("profile_gender_label"); ?>: </label>
+								<?php						  
+                                      $genderradio = new Zend_Form_Element_Radio('gender',
+                                              array(
+                                                      'multiOptions' => array('1'=>'Male','2'=>'Female'), 
+                                                      'view' => new Zend_View(),
+                                                      'disableLoadDefaultDecorators' => true,
+                                                      'separator' => '&nbsp;',										  
+                                                      'decorators' => array('ViewHelper',
+                                                                          array('HtmlTag', array('tag' => 'div', 'class' => array('inline', 'radio', 'zendradio'))) // use a sorrounding DIV with classes which are copied to the label by JQuery
+                                                                      )
+                                              )
+                                      );
+                                      $genderradio->setValue($user->getGender());
+                                      echo $genderradio->render();
+                                  ?><div id="gender_error"></div></td>  
+                            </tr> 
+                            <tr>
+                                <td><label class="control-label">Phone:</label>
+                                <?php if($validated){ ?>
+                                    <?php echo $phone; ?> <?php echo $valid_text; ?>
+                                    <input type="hidden" name="phone" id="phone" value="<?php echo $phone; ?>" />
+                                <?php } else { ?>
+                                    <div class="input-prepend">
+                                        <span class="add-on"><?php echo '+'.COUNTRY_CODE_UG; ?></span><input name="phone" id="phone" type="text" maxlength="10" class="span2 hastooltip" style="width:110px;" value="<?php echo $phone; ?>" title="<?php echo $this->translate("profile_phone_tooltip"); ?>" />
+                                    </div>
+                                    <div id="phone_error"></div>
+                                <?php } ?>
+                                </td>
+                                <td>
+                                <label class="control-label">Alt Phone:</label>
+                                <?php if($svalidated){ ?>
+                                    <?php echo $altphone; ?> <?php echo $svalid_text; ?>
+                                    <input type="hidden" name="phone2" id="phone" value="<?php echo $altphone; ?>" />
+                                <?php } else { ?>
+                                    <div class="input-prepend">
+                                        <span class="add-on"><?php echo '+'.COUNTRY_CODE_UG; ?></span><input name="phone2" id="phone2" type="text" maxlength="10" class="span2 hastooltip" style="width:110px;" value="<?php echo $altphone; ?>" title="<?php echo $this->translate("profile_phone_tooltip"); ?>" />
+                                    </div>
+                                    <div id="phone2_error"></div>
+                                <?php } ?>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div id="row1_left" class="well lighter row marginleft0" style="height:auto; padding-left:10px;">     
+                        <table class="table nohover">                       
+                            <tr>
+                            	<td width="50%"><label class="control-label">Country:</label>
+								<?php
+                                    $countries = getCountries();
+                                    $countrydropdown = new Zend_Form_Element_Select('country',
+                                                        array(
+                                                            'multiOptions' => array_merge_maintain_keys(array('' => "<Select One>", "UG"=>"Uganda"), $countries),
+                                                            'view' => new Zend_View(), 
+                                                            'decorators' => array('ViewHelper'),
+                                                            'class' => array('country', 'xchzn-select', 'disabledfield')                                                            )
+                                                    );
+                                    $countrydropdown->setValue($address->getCountry()); 
+                                    echo $countrydropdown->render(); 
+                                ?><input type="hidden" name="country" id="country" value="<?php echo $address->getCountry(); ?>" />
+                                <span id="tooltip_country"></span><div id="country_error"></div>
+                            	</td>
+                            	<td rowspan="2">
+                                	<label class="control-label">Address:</label>
+                                    <textarea name="streetaddress" id="streetaddress" class="expanding hastooltip" title="<?php echo $this->translate("profile_streetaddress_tooltip"); ?>" style="min-height:60px; width:85%;"><?php echo $address->getStreetAddress(); ?></textarea>
+                                </td>
+                          	</tr>
+                            <tr>
+                            	<td><label class="control-label"><?php echo $this->translate("profile_city_label"); ?>:</label>
+                                <input name="city" id="city" type="text" style="width:80%;" class="hastooltip" value="<?php echo $address->getCity(); ?>" title="<?php echo $this->translate("profile_city_tooltip"); ?>" /></td> 
+                            </tr>
+                            
+                            
+                         </table>
+                    </div>
+                </span> 
+                <span class="span3 pull-right" style="width:22%; margin-right:20px; ">
+                    <div id="row1_right" class="well row" style="height:auto;">
+                        <h3 class="well-legend">Action</h3>
+                        <table class="table">                       
+                           <tr>		                    
+                                <td class="formactions">
+                                	<button type="submit" class="btn btn-primary savethenview"><i class="icon-ok icon-white"></i> <?php echo $this->translate('global_button_save_changes'); ?></button>
+                                    <a href="<?php echo $this->baseUrl('profile/view/id/'.encode($user->getID())); ?>" class="btn"><i class="icon-remove"></i> <?php echo $this->translate('global_button_cancel'); ?></a>
+                                    <input type="hidden" name="entityname" value="UserAccount" />
+                                    <input type="hidden" id="id" name="id" value="<?php echo encode($user->getID()); ?>" />
+                                    <input type="hidden" id="theaddressid" name="theaddressid" value="<?php echo $address->getID(); ?>" />                               
+                                    <input type="hidden" class="successurl" id="<?php echo URL_SUCCESS; ?>" name="<?php echo URL_SUCCESS; ?>" title="general" />
+                                    <input type="hidden" class="failureurl" id="<?php echo URL_FAILURE; ?>" name="<?php echo URL_FAILURE; ?>" title="general" />
+                                    <input type="hidden" id="<?php echo SUCCESS_MESSAGE; ?>" name="<?php echo SUCCESS_MESSAGE; ?>" value="Profile updated successfully" />    
+								</td>
+                           </tr>
+                        </table>
+                    </div>
+                </span>		
+        	</div>
+            <?php } ?>
+        	</form> 
+        </div>
+        <?php require APPLICATION_PATH."/views/scripts/profile/settings.phtml"; ?>
+    </div> 
+</div>
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

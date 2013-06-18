@@ -1,0 +1,17 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	$title = "Account Reactivation";
+	$this->headTitle($title); 
+
+	$show_left_column = false;
+	$show_right_column = false;
+	
+?>
+<h1><?php echo $title; ?></h1>
+Your <?php echo $this->translate("appname"); ?> account has previously been deactivated. Would you like to reactive it?<br />
+<br />
+<a href="<?php echo $this->baseUrl('index'); ?>" class="negativeaction" title="Don't Reactivate My Account"><img src="<?php echo $this->baseUrl('images/cross.png'); ?>" />Do Not Reactivate My Account </a>  
+<a href="<?php echo $this->baseUrl('user/reactivate/userid/'.$request->userid); ?>" class="positiveaction" title="Reactivate My Account"><img src="<?php echo $this->baseUrl('images/tick.png'); ?>" />Reactivate My Account</a>  
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

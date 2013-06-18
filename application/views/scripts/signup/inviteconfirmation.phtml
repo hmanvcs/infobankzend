@@ -1,0 +1,31 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+		
+	$title = $this->translate("useraccount_pagetitle_invitation_success"); 
+	$this->headTitle($title);
+	
+	// the usermaking the payment
+	$farmer = new Farmer();
+	// $person->populate(decode($request->id));
+	
+?>
+
+<span class="span7 well" style="margin-left:200px;">
+    <h1><?php echo $title; ?></h1>
+    <span class="span7 marginleft0">
+    	<div class="alert alert-success"><a class="close" data-dismiss="alert">×</a>Your account on <?php echo $this->translate("appname");?> has been successfully activated. </div>
+        <table class="table well">    
+            <tr>
+                <td><br /><br />
+                    <span style="display:block; width:100%; text-align:center; vertical-align:middle; height:70px;">
+                        You can now click button below to login using either your email, username or phone.<br /><br />
+                        <a class="positiveaction btn btn-primary btn-large" href="<?php echo $this->baseUrl("user/logout")?>"><i class="icon-lock icon-white"></i> Login</a>
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </span>	
+</span>
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

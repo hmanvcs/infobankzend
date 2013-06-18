@@ -1,0 +1,407 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	
+	$contact = new Contact(); 
+	
+	// default title is to enable adding any payee
+	$title = $this->translate("contact_pagetitle_new"); 
+	$posturl = $this->baseUrl($request->getControllerName()."/create");
+	$button_title = $this->translate("contact_button_new"); 
+	
+	// set the payee if provided in the url 
+	if (!isEmptyString($request->id)) {
+		$contact->populate(decode($request->id));
+		$title = sprintf($this->translate("contact_pagetitle_edit"), $contact->getName()); 
+		$button_title = $this->translate("contact_button_edit");
+		$posturl = $this->baseUrl($request->getControllerName()."/edit");	
+	}
+	
+	#in case of errors in session, populate the fields from session
+	if(!isEmptyString($session->getVar(ERROR_MESSAGE))){ 
+		$contact->processPost($session->getVar(FORM_VALUES));	
+	}
+		
+	$this->headTitle($title);  
+	
+	# lookup for salutations
+	$categorylookup = new LookupType();
+	$categorylookup->setName("ALL_BUSINESS_DIRECTORY_CATEGORIES");
+?>
+<script>
+	$(document).ready(function() {
+		$("#indexform").validate({		
+			// define the validation rules one field at a time
+			rules: {
+				firstname: "required",
+				lastname: "required",
+				orgname: "required",
+				phone: "required",					
+				gender: "required",
+				email: {
+					required:false,
+					email: true
+				},
+				categoryid: "required"
+			}, 
+			// the messages for each of the fields being validated
+			messages: {		
+				firstname: "<?php echo $this->translate("contact_firstname_error"); ?>",
+				lastname: "<?php echo $this->translate("contact_lastname_error"); ?>",
+				orgname: "<?php echo $this->translate("contact_orgname_error"); ?>",
+				phone: "<?php echo $this->translate("contact_phone_error"); ?>",
+				gender: "<?php echo $this->translate("contact_gender_error"); ?>",
+				email: {					
+					email: "<?php echo $this->translate("contact_invalid_email_error"); ?>"
+				},
+				categoryid: "<?php echo $this->translate("contact_category_error"); ?>"			
+			},
+			// custom error positions
+			errorPlacement: function(error, element) {
+				switch(element.attr("name")){					
+					default:
+						error.appendTo("#"+element.attr("name")+"_error")
+						break;
+				}			
+			}
+		});
+		
+		//trigger a click action on the selected radio button to enable and disable the approprate fields
+		<?php if($contact->isPerson()){ ?>
+			// show the person only fields
+			$("#contacttype-1").click();			
+			disableContainerByClass("company");	
+			enableContainerByClass("person");
+		<?php } else { ?>		
+			// show the company only fields			
+			$("#contacttype-2").click();
+			disableContainerByClass("person");
+			enableContainerByClass("company");
+		<?php } ?>
+		
+		// when the person contact is selected, hide the contact tbody and disable all inputs in it
+		$("#contacttype-1").click(function() {
+			// hide the company rows, disable any HTML controls. Enable the person rows and enable all controls in those rows
+			disableContainerByClass("company");	
+			enableContainerByClass("person");
+		});
+		
+		// when the company contact is selected, hide the person tbody and disable all inputs in it
+		$("#contacttype-2, #contacttype-3, #contacttype-4, #contacttype-5").click(function() {
+			// hide the person rows, disable any HTML controls. Enable the company rows and enable all controls in those rows
+			enableContainerByClass("company");	
+			disableContainerByClass("person");
+		});	
+		
+		// the services to be advertised should be displayed if wish to advertise is selected
+		<?php if($contact->getWishToAdvertise() == 1){ ?>
+			$("#advertised").removeClass("hidden");
+		<?php } ?>
+		//initialise the date of registration
+		datepickerOpts.maxDate = new Date();   
+		$("#dateofregistration").datepicker(datepickerOpts); 	
+		
+		// chained select to load the counties for a district
+		$('#locationid').selectChain({
+		    target: $('#countyid'),
+		    url: '<?php echo $this->baseUrl('contact/selectchain/'.SELECT_CHAIN_TYPE.'/location_counties/')?>',
+		    data: 'currentvalue=<?php echo $contact->getCountyID(); ?>',
+		    type: 'get'
+		});
+		$('#locationid').trigger("change");		
+		
+		/// chained select to load the subcounties for a county
+		$('#countyid').selectChain({
+		    target: $('#subcountyid'),
+		    url: '<?php echo $this->baseUrl('contact/selectchain/'.SELECT_CHAIN_TYPE.'/county_subcounties/')?>',
+		    data: 'currentvalue=<?php echo $contact->getSubCountyID(); ?>',
+		    type: 'get'
+		});
+		$('#countyid').trigger("change");
+		
+		equalHeight($("#location_left, #location_right"));
+		equalHeight($("#business_left, #business_right"));
+		
+	}); 
+</script>
+<style>
+.radio.inline, .checkbox.inline {
+	display:inline-block;
+	margin-bottom: 1px;
+    padding-top: 0;
+}
+.radio input[type="radio"], .checkbox input[type="checkbox"] {
+	margin-top:1px;
+}
+</style>
+<div>
+	<?php require APPLICATION_PATH."/views/scripts/index/leftcolumn.phtml"; ?>
+    <div id="centercolumn">
+        <form id="indexform" class="form-horizontal" action="<?php echo $posturl; ?>" method="post">
+			<?php if(!isEmptyString($session->getVar(SUCCESS_MESSAGE)) ){ ?>
+                <div class="alert alert-success"><a class="close" data-dismiss="alert">×</a><?php echo $session->getVar(SUCCESS_MESSAGE); ?></div>
+            <?php } ?>
+            <?php if($sessionhaserror) { ?>
+                <div class="alert alert-error"><?php echo $session->getVar(ERROR_MESSAGE); ?></div>
+            <?php } ?>
+            <div class="row margin0" style="padding:2px; margin-bottom:10px;">
+            	<span class="pull-left well lighter margin0" style="width:72%; min-height:230px;">
+                	<table class="table noborder margin0">
+                    	<tr>                        	
+                            <td style="padding:10px 0 0 0; width:70%;">
+                                <h3 class="well-legend"><?php echo $title; ?></h3>
+                                <table class="table smalltdpad">
+                                    <tr class="person">
+                                        <td width="35%;"><label class="control-label" for="firstname"><?php echo $this->translate("contact_firstname_label"); ?>: <?php echo $this->translate("global_required_field_marker"); ?></label></td>
+                                        <td><input type="text" name="firstname" id="firstname" class="span2 hastooltip" value="<?php echo $contact->getFirstName(); ?>" title="<?php echo $this->translate("contact_firstname_tooltip"); ?>"  /><div id="firstname_error"></div>
+                                        </td>
+                                    </tr>
+                                    <tr class="person">
+                                        <td><label class="control-label"><?php echo $this->translate("contact_lastname_label"); ?>: <?php echo $this->translate("global_required_field_marker"); ?></label></td>
+                                        <td><input type="text" name="lastname" id="lastname" class="span2 hastooltip" value="<?php echo $contact->getLastName(); ?>" title="<?php echo $this->translate("contact_lastname_tooltip"); ?>" /><div id="lastname_error"></div></td>
+                                    </tr>    
+                                    <tr class="person">
+                                        <td><label class="control-label"><?php echo $this->translate("contact_othernames_label"); ?>:</label></td>
+                                        <td><input type="text" name="othernames" id="othernames" class="span2 hastooltip" value="<?php echo $contact->getOtherNames(); ?>" title="<?php echo $this->translate("contact_lastname_tooltip"); ?>" /></td>
+                                    </tr>
+                                    <tr class="person">
+                                        <td><label class="control-label"><?php echo $this->translate("contact_salutation_label"); ?>:</label></td>
+                                        <td>
+                                            <?php
+                                                  $suffixlookup = new LookupType();
+                                                  $suffixlookup->setName("SALUTATION");
+                                                  $suffixselect = new Zend_Form_Element_Select('salutation',
+                                                          array(
+                                                                  'multiOptions' => array_merge_maintain_keys(array('' => '<Select>'), $suffixlookup->getOptionValuesAndDescription()),
+                                                                  'view' => new Zend_View(),
+                                                                  'decorators' => array(array('ViewHelper')),
+                                                                  'class' => array('span2','type','hastooltip'),
+                                                                  'title' => $this->translate("person_suffix_tooltip")	
+                                                          )
+                                                  );
+                                                  
+                                                  $suffixselect->setValue($contact->getSalutation());
+                                                  echo $suffixselect->render();
+                                              ?>
+                                        </td>
+                                    </tr>
+                                    <tr class="gender person">
+                                        <td><label class="control-label"><?php echo $this->translate("contact_gender_label"); ?>: <?php echo $this->translate("global_required_field_marker"); ?></label></td>
+                                        <td><?php						  
+                                              $genderradio = new Zend_Form_Element_Radio('gender',
+                                                      array(
+                                                              'multiOptions' => array('1' => 'Male', '2' => 'Female'), 
+                                                              'view' => new Zend_View(),
+                                                              'disableLoadDefaultDecorators' => true,
+                                                              'separator' => '&nbsp;&nbsp;&nbsp;&nbsp;',
+                                                              'decorators' => array('ViewHelper',
+                                                                                  array('HtmlTag', array('tag' => 'div', 'class' => array('inline', 'radio', 'zendradio'))) // use a sorrounding DIV with classes which are copied to the label by JQuery
+                                                                              )
+                                                      )
+                                              );
+                                              $genderradio->setValue($contact->getGender());
+                                              echo $genderradio->render();
+                                          ?>
+                                          <div id="gender_error"></div></td>
+                                    </tr>
+                                	<tr class="company">
+                                        <td colspan="2"><br/></td>
+                                    </tr>
+                                    <tr class="company">
+                                        <td width="35%;"><label class="control-label"><?php echo $this->translate("contact_companyname_label"); ?>: <?php echo $this->translate("global_required_field_marker"); ?></label></td>
+                                        <td><input type="text" name="orgname" id="orgname" class="span2 hastooltip" value="<?php echo $contact->getOrgName(); ?>" title="<?php echo $this->translate("contact_orgname_tooltip"); ?>" /><div id="orgname_error"></div></td>
+                                    </tr>
+                                    <tr class="company">
+                                        <td><label class="control-label"><?php echo $this->translate("contact_contactperson_label"); ?>:</label></td>
+                                        <td><input type="text" name="contactperson" id="contactperson" class="span2 hastooltip" value="<?php echo $contact->getContactPerson(); ?>" title="<?php echo $this->translate("contact_contactperson_tooltip"); ?>" /></td>
+                                    </tr>
+                                    <tr class="company">
+                                        <td colspan="2"><br/></td>
+                                    </tr>
+                                </table>
+                            </td>
+                            <td style="vertical-align:top; padding-left:0; padding-top:45px;">
+                            	<img style="width:150px;" src="<?php echo $contact->isPerson() ? $this->baseUrl('images/contactperson.png') : $this->baseUrl('images/contactorg.png') ; ?>" />
+                            </td>
+                        </tr>
+                        <tr>
+                        	<td colspan="2" style="padding:0;">
+                            	<table class="margin0 noborder smalltdpad">
+                                    
+                                    <tr>
+                                        <td width="20%;"><label class="control-label"><?php echo $this->translate("contact_category_label"); ?>: <?php echo $this->translate("global_required_field_marker"); ?></label></td>
+                                        <td><?php
+                                                $categorylookup = getTopLevelCategories("");
+                                                $catdropdown = new Zend_Form_Element_Select('categoryid',
+                                                                    array(
+                                                                        'multiOptions' => array_merge_maintain_keys(array('' => '<Select One>'), $categorylookup),								
+                                                                        'view' => new Zend_View(),
+                                                                        'decorators' => array('ViewHelper'),
+                                                                        'class' => array("filterselect", 'span3', 'width180', 'hastooltip'),
+                                                                        'title' => $this->translate("contact_categoryid_tooltip")
+                                                                    )
+                                                                );
+                                                $catdropdown->setValue($contact->getTheCategoryID()); 
+                                                echo $catdropdown->render();
+                                              ?><div id="categoryid_error"></div></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label class="control-label">Tags:</label></td>
+                                        <td>
+                                            <?php 
+                                                $subcategorylookup = getAllSubCategories("");
+                                                $subcatdropdown = new Zend_Form_Element_Multiselect('contact_categoryid',
+                                                    array(
+                                                        'multiOptions' => $subcategorylookup,								
+                                                        'view' => new Zend_View(),
+                                                        'decorators' => array('ViewHelper'),
+                                                        'class' => array('verywideselect', 'chzn-select','span5', 'hastooltip_custom'),
+														'title' => $this->translate("contact_subcategory_tooltip")
+                                                    )
+                                                );
+                                                $subcatdropdown->setValue($contact->getSubCategoryIDs()); 	
+                                                $subcatdropdown->setAttrib("data-placeholder", "Select or start typing sub categories");
+                                                echo $subcatdropdown->render();
+                                            ?><span id="tooltip_contact_categoryid"></span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                      <td><label class="control-label"><?php echo $this->translate("contact_visibility_label"); ?>:</label></td>
+                                      <td><?php 	
+                                            $visibility = new Zend_Form_Element_Radio('visibility',
+                                                  array(
+                                                          'multiOptions' => array("1" => "Only me", "2" => "Farm Group", "3" => "Everyone"), 
+                                                          'view' => new Zend_View(),
+                                                          'disableLoadDefaultDecorators' => true,
+                                                          'separator' => '&nbsp;&nbsp;&nbsp;&nbsp;',
+                                                          'class' => array('hastooltip_custom'),
+														  'title' => $this->translate("contact_visibility_tooltip"),
+                                                          'decorators' => array('ViewHelper',
+                                                                              array('HtmlTag', array('tag' => 'div', 'class' => array('inline', 'radio', 'zendradio'))) // use a sorrounding DIV with classes which are copied to the label by JQuery
+                                                                          )
+                                                  )
+                                            );
+                                            $visibility->setValue($contact->getVisibility());
+                                            echo $visibility->render();
+                                        ?>&nbsp;&nbsp;<span id="tooltip_visibility"></span></td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </span>
+                <span class="pull-right padding0" style="width:24%; margin-left:5px;">
+                	<div class="well margin0" style="height:160px;">
+                            <h3 class="well-legend">Quick Links</h3>
+                            <table class="table">                       
+                               <tr>		                    
+                                    <td class="formactions">
+                                    	<button type="submit" class="btn btn-primary savethenview"><i class="icon-ok icon-white"></i> <?php echo $this->translate('global_button_save_changes'); ?></button>
+                                        <a href="<?php echo $this->baseUrl('contact/view/id/'.encode($contact->getID())); ?>" class="btn"><i class="icon-remove"></i> <?php echo $this->translate('global_button_cancel'); ?></a>
+                                        <input type="hidden" name="entityname" value="Contact" />
+                                        <input type="hidden" id="id" name="id" value="<?php echo encode($contact->getID()); ?>" />
+                                        <input type="hidden" id="contacttype" name="contacttype" value="<?php echo $contact->getContactType(); ?>" />
+                                        <?php if(!isEmptyString($contact->getFarmerID())) { ?>
+                                            <input type="hidden" id="farmerid" name="farmerid" value="<?php echo $contact->getFarmerID(); ?>" />
+                                        <?php } ?>
+                                        <?php if(!isEmptyString($contact->getFarmGroupID())) { ?>
+                                            <input type="hidden" id="farmgroupid" name="farmgroupid" value="<?php echo $contact->getFarmGroupID(); ?>" />
+                                        <?php } ?>
+                                        <input type="hidden" id="<?php echo SUCCESS_MESSAGE; ?>" name="<?php echo SUCCESS_MESSAGE; ?>" value="Contact updated successfully" /> 
+                                    </td>
+                               </tr>
+                            </table>                           
+                        </div>
+                </span>
+            </div>
+             <div class="row margin0" style="padding:2px; margin-bottom:10px;">
+            	<span class="pull-left" style="width:50%; margin-right:5px;">
+                	<div id="location_left" class="well lighter margin0" style="min-height:190px;"> 
+                        <h3 class="well-legend">Contacts</h3>
+                        <table class="table noborder">                       
+                            <tr>
+                                <td style="width:23%;"><label class="control-label"><?php echo $this->translate("contact_phone_label"); ?>:</label></td>
+                                <td><input type="text" name="phone" id="phone" class="span2 hastooltip" title="<?php echo $this->translate("contact_phone_ooltip"); ?>" value="<?php echo $contact->getPhone(); ?>" /><div id="phone_error"></div></td>
+                            </tr>
+                            <tr>
+                                <td><label class="control-label"><?php echo $this->translate("contact_altphone_label"); ?>:</label></td>
+                                <td><input type="text" name="phone2" id="phone2" class="span2 hastooltip" title="<?php echo $this->translate("contact_phone_ooltip"); ?>" value="<?php echo $contact->getPhone2(); ?>" /></td>
+                            </tr>
+                            <tr>
+                                <td><label class="control-label">Email<?php //echo $this->translate("contact_email_label"); ?>:</label></td>
+                                <td><input type="text" name="email" id="email" class="span3 hastooltip" title="<?php echo $this->translate("contact_email_ooltip"); ?>" value="<?php echo $contact->getEmail(); ?>" /><div id="email_error"></div></td>
+                            </tr>
+                            <tr>
+                                <td><label class="control-label"></label></td>
+                                <td></td>
+                            </tr>
+                        </table>
+                    </div>
+                </span>
+                <span class="pull-right" style="width:49%;">
+                	<div id="location_right" class="well lighter margin0" style="min-height:190px;"> 
+                        <h3 class="well-legend">Location</h3>
+                        <table class="table noborder">                       
+                            <tr>
+                                <td style="width:45%;"><label class="control-label"><?php echo $this->translate("contact_district_label"); ?>:</label></td>
+                                <td>
+                                	<?php
+										$districtlist = new LookupType(); 
+										$districtlist->setName("ALL_DISTRICTS");
+										$districtdropdown = new Zend_Form_Element_Select('locationid',
+															array(
+																'multiOptions' => array_merge_maintain_keys(array('' => '<Select One>'), $districtlist->getOptionValuesFromQuery()),								
+																'view' => new Zend_View(),
+																'decorators' => array('ViewHelper'),
+																'class' => array("filterselect", 'chzn-select'),
+															)
+														);
+										$districtdropdown->setValue($contact->getLocationID()); 
+										echo $districtdropdown->render(); 
+									  ?>
+								</td>
+                            </tr>
+                            <tr>
+                                <td><label class="control-label"><?php echo $this->translate("global_county_label"); ?>:</label></td>
+                                <td><select name="countyid" id="countyid">
+                                  <option value="">&lt;Select One&gt;</option>
+                                </select></td>
+                            </tr>
+                            <tr>
+                                <td><label class="control-label"><?php echo $this->translate("global_subcounty_label"); ?>:</label></td>
+                                <td><select name="subcountyid" id="subcountyid">
+                                  <option value="">&lt;Select One&gt;</option>
+                                </select></td>
+                            </tr>
+                            <tr>
+                                <td><label class="control-label"><?php echo $this->translate("contact_address_label"); ?>:</label></td>
+                                <td><textarea name="address" id="address" class="span3 expanding" style="min-height:60px;"><?php echo $contact->getAddress(); ?></textarea></td>
+                            </tr>
+                        </table>
+                    </div>
+                </span>
+            </div>
+            <div class="row margin0" style="padding:2px;">
+                <span class="maxwidth">
+                	<div id="business_right" class="well lighter margin0" style="min-height:190px;"> 
+                        <h3 class="well-legend">Services</h3>
+                        <table class="table noborder">                       
+                           	<tr>
+                                <td><label class="control-label"><?php echo $this->translate("contact_businessdescription_label"); ?>:</label>
+                                	<textarea class="expanding span6" id="businessdescription" name="businessdescription"><?php echo $contact->getBusinessDescription(); ?></textarea>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label class="control-label"><?php echo $this->translate("contact_goodsorservicesoffered_label"); ?>:</label>
+									<textarea class="expanding span6" id="goodsorservicesoffered" name="goodsorservicesoffered"><?php echo $contact->getGoodsOrServicesOffered(); ?></textarea>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>    
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

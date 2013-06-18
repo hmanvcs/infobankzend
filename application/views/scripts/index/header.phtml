@@ -1,0 +1,50 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	
+	$logopath = $this->baseUrl('images/infobank.png');
+	$logostyle = '';
+	
+?>
+<div class="container">
+	<div id="headerleft">
+    	<span id="logocontainer"><a id="logo" class="" href="<?php echo $this->baseUrl('index'); ?>"><img <?php echo $logostyle; ?> src="<?php echo $logopath; ?>" /></a></span>
+        <span id="adcontainer">
+        	<?php if(isEmptyString($userid)){ ?>
+        		<a id="banner" class="" href="javascript: void(0)"><img src="<?php echo $this->baseUrl('images/adbanner.png'); ?>" /></a>
+            <?php } ?>
+        </span>
+    </div>
+    <div id="headerright" class="">
+    	<ul class="headerquicklinks">
+       		<li><a href="<?php echo $this->baseUrl('index'); ?>" title="Home" id="">Home</a></li></a>
+            <?php if(!isEmptyString($userid)){ ?>
+            	<li><a href="<?php echo $this->baseUrl('dashboard'); ?>" title="Dashboard" id="">Dashboard</a></li></a>
+            <?php } ?>
+            	<li><a href="<?php echo $this->baseUrl('aboutus'); ?>" title="About" id="">About</a></li></a>
+            <li><a href="<?php echo $this->baseUrl('contactus'); ?>" title="Contact us" id="">Contact</a></li></a>
+            <?php if(isEmptyString($userid)){ ?>
+           	 	<li><a href="<?php echo $this->baseUrl('help'); ?>" title="Frequently Asked Questions" id="">FAQs</a></li></a>
+            	<li><a href="javascript: void(0)<?php //echo $this->baseUrl('sitemap'); ?>" title="Site Map" id="">Site Map</a></li></a>
+            <?php } ?>    
+        </ul>
+        <div id="searchbox">
+        	<table class="table table-condensed border0 margin0 padding0 nohover">
+            	<tr>
+                	<td>
+                    	<form class="navbar-search pull-right" id="searchform">
+                        	<div class="input-append makerelative">
+                              <input type="text" class="xsearch-query headersearch" placeholder="Search...">
+                              <span class="add-on" id="searchbutton"><i class="icon-search"></i></span>
+                            </div>
+                          
+                        </form>
+                    <!--<input type="text" class="search" id="" name="headersearch" placeholder="what are you looking for? " />-->
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

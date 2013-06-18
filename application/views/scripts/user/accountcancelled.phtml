@@ -1,0 +1,17 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	
+	$title = "Account Cancelled";
+	$this->headTitle($title); 
+
+	$show_left_column = false;
+	$show_right_column = false;
+	
+?>
+<h1><?php echo $title; ?></h1>
+Your <?php echo $this->translate("appname"); ?> account was cancelled. You have to reactivate it before you can use the service.<br />
+<br />
+If you have any questions, please contact us at <a href="mailto:<?php echo $config->notification->supportemailaddress; ?>"><?php echo $config->notification->supportemailaddress; ?></a>
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

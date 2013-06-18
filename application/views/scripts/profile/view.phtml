@@ -1,0 +1,303 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	
+	$user = new UserAccount();
+	
+	$theid = decode($request->id);
+	if(isEmptyString($theid)){
+		$theid = $userid;
+	}
+	$user->populate($theid);
+	
+	// debugMessage($user->toArray()); exit();
+	$id = $user->getID();	
+	$name = $user->getName();
+	$firstname = $user->getFirstName();
+	
+	#cleanup address
+	if(!isEmptyString($user->getID())){
+		// $user->cleanUpAddress();
+	}
+	
+	# profile for one viewing
+	$isme = false;
+	if($userid == $user->getID()){
+		$isme = true;
+	}
+	
+	if(isEmptyString($request->tab)) {
+		$request->setParam('tab', 'basics');
+	}
+	
+	if($request->tab == 'basics' || $request->tab == 'account') {
+		// address 
+		$address = $user->getAddresses()->get(0);
+		
+		// primary phone
+		$phone = $user->getFormattedPhone(1);
+		$validated = false;
+		$valid_text = '';
+		if(!isEmptyString($phone)){
+			$valid_text = '&nbsp; (Unconfirmed)';
+		}
+		$allowrevalidate = false;
+		if(!isEmptyString($phone) && $user->isValidated(1)){
+			$validated = true;
+			$valid_text = '&nbsp; <span class="pagedescription" style="color:#55A411;">(Confirmed)</span';
+		}
+		if($user->hasPendingActivation(1)){
+			$allowrevalidate = true;
+		}
+		
+		// alt phone
+		$altphone = $user->getFormattedPhone(2);		
+		$svalidated = false;
+		$svalid_text = '';
+		if(!isEmptyString($altphone)){
+			$svalid_text = '&nbsp; (Unconfirmed)';
+		}
+		$sallowrevalidate = false;
+		if($user->isValidated(2)){
+			$svalidated = true;
+			$svalid_text = '&nbsp; <span class="pagedescription" style="color:#55A411;">(Confirmed)</span';
+		}
+		if($user->hasPendingActivation(2)){
+			$sallowrevalidate = true;
+		}
+	}
+	
+	$title = $user->getName();
+	$this->headTitle($title);
+	
+?>
+
+<script>
+$(document).ready(function() {
+	// remove box style if person has no profile picture
+	<?php if($user->hasProfileImage()){ ?>
+		$("#profileinfo").addClass('new_pic');
+	<?php } ?>
+	
+	// validate phone number on file
+	$("a.validatetrigger").click(function(){
+		var id = $(this).attr('id');
+		var type = userphoneid = $("label."+id).html();
+		var code = $("input."+id).val();
+		var successurl = $(this).attr('successurl');
+		// var type = id == 'vali'
+		// alert(userphoneid);
+		var validcode = true;
+		var clength = code.length;
+		if(isEmptyString(code) || (!isEmptyString(code) && clength < 6)) {
+			$("div#validate_"+userphoneid+"_error").html('<div class="alert alert-error">Please enter 6 digit code</div>');
+			$("div.alert-error").css({'background': 'url("<?php echo $this->baseUrl('images/cross.png'); ?>") no-repeat #EDDBE3 5px 8px'});
+			validcode = false;
+		}
+		
+		// check that email is provided
+		if(validcode) {
+			id = '<?php echo $user->getID(); ?>'; 
+			$("div#validate_"+userphoneid+"_error").html('');
+			$("span#phone_before_"+userphoneid).hide(); 
+			$("span#phone_after_"+userphoneid+" a").show(); 
+			var url = '<?php echo $this->baseUrl("profile/verifyphone"); ?>/id/'+id+'/code/'+code+'/type/'+type+'/successurl/'+successurl;
+			// alert(url);
+			window.location.href = url;
+		}
+	});
+	
+	$("#confirmemail").click(function(){
+		var code = $("#code").val();
+		var id = $(this).attr('userid');
+		var ref = $(this).attr('ref');
+		
+		var validcode = true;
+		var clength = code.length;
+		if(isEmptyString(code) || (!isEmptyString(code) && clength < 6)) {
+			$("div#code_email_error").html('<div class="alert alert-error">Please enter 6 digit code</div>');
+			$("div.alert-error").css({'background': 'url("<?php echo $this->baseUrl('images/cross.png'); ?>") no-repeat #EDDBE3 5px 8px'});
+			validcode = false;
+		}
+		// check that email is provided
+		if(validcode) {
+			$("div#code_email_error").html('');
+			var url = '<?php echo $this->baseUrl("profile/changeemail"); ?>/id/'+id+'/actkey/'+code+'/ref/'+ref;
+			// alert(url);
+			window.location.href = url;
+		}
+	});
+	
+	$("#confirmphone").click(function(){
+		var code = $("#code").val();
+		var id = $(this).attr('userid');
+		var ref = $(this).attr('ref');
+		
+		var validcode = true;
+		var clength = code.length;
+		if(isEmptyString(code) || (!isEmptyString(code) && clength < 6)) {
+			$("div#code_phone_error").html('<div class="alert alert-error">Please enter 6 digit code</div>');
+			$("div.alert-error").css({'background': 'url("<?php echo $this->baseUrl('images/cross.png'); ?>") no-repeat #EDDBE3 5px 8px'});
+			validcode = false;
+		}
+		// check that email is provided
+		if(validcode) {
+			$("div#code_phone_error").html('');
+			var url = '<?php echo $this->baseUrl("profile/changephone"); ?>/id/'+id+'/actkey/'+code+'/ref/'+ref;
+			// alert(url);
+			window.location.href = url;
+		}
+	});
+}); 
+</script>
+<style>
+#map {
+	width: 100%;
+	height: 450px;
+}
+#center .ui-widget-content {
+	width:100%;
+	float:left;
+}
+.alert.alert-success {
+	width:90%;
+}
+.table.profile {
+	font-size:16px;	
+}
+.table.profile tr td {
+	padding-bottom:30px;	
+}
+.table.profile tr td label.control-label{
+	font-size:15px;
+	margin-bottom:20px;
+	
+}
+</style>
+<?php if(!isSubscriber()){ ?>
+<h1><?php echo $title; ?></h1>
+<?php } ?>
+<div id="tabs">
+    <?php require APPLICATION_PATH."/views/scripts/profile/profileleftcolumn.phtml"; ?>
+    <div class="span9 tab-content" id="center">   
+        <div id="basics">
+            <form id="profileform-basics" class="form-horizontal basics">
+            <?php if($request->tab == 'basics'){ ?>
+            <?php if(isSubscriber()){ ?>
+            <h2 class="calfont title">My Profile</h2>
+            <?php } ?>
+        	<div class="row" style="margin-left:0px;">
+                <?php if(!isEmptyString($session->getVar(SUCCESS_MESSAGE)) ){ ?>
+                    <div class="alert alert-success"><a class="close" data-dismiss="alert">×</a><?php echo $session->getVar(SUCCESS_MESSAGE); ?></div>
+                <?php } ?>
+                <span class="span6 marginleft0" style="width:70%;">
+                    <div class="well row marginleft0" style="min-height:250px; padding-left:10px;">                        
+                        <table class="table noborder profile">                       
+                           <tr>
+                                <td style="width:50%;"><label class="control-label"><?php echo $this->translate("profile_firstname_label"); ?>:</label>
+                                <?php echo $user->getFirstName(); ?></td>
+                                <td><label class="control-label"><?php echo $this->translate("profile_lastname_label"); ?>:</label>
+                                <?php echo $user->getLastName(); ?></td>                                                             
+                            </tr>
+                            <tr>
+                            	<td><label class="control-label"><?php echo $this->translate("profile_emailonly_label"); ?>:</label><?php echo $user->getEmail(); ?></td>
+                                <td><label class="control-label"><?php echo $this->translate("profile_gender_label"); ?>:</label><?php echo $user->getGenderText(); ?></td>   
+                            </tr>
+                            <tr>
+                                <td><label class="control-label">Phone:</label>
+                                    <?php echo isEmptyString($phone) ? '--' : $phone; ?><?php echo $valid_text; ?>
+                                    
+                                    <?php if(!$validated && !$allowrevalidate && !isEmptyString($phone)){ ?>
+                                        <a style="display:block; margin-top:10px;" href="<?php echo $this->baseUrl('profile/validatephone/type/1/id/'.encode($user->getID()).'/pgc/true'); ?>" class="btn btn-primary btn-mini addpopup width75" rel="Validate Phone" title="Validate Mobile Phone" id="validate" formtitle="indexform" successurl="<?php echo $this->baseUrl('profile/view/id/'.encode($user->getID())); ?>" action="<?php echo $this->baseUrl("profile/processvalidatephone"); ?>" submittext="Request Code">Validate Phone</a>
+                                    <?php } ?>
+                                    <?php if(!$validated && $allowrevalidate){ ?>
+                                        <span class="phone_before" id="phone_before_1">
+                                            <input type="text" name="phone_1" id="phone_1" placeholder="enter 6 digit code" title="Confirm Phone" value="" maxlength="6" class="validate validate_1" />
+                                            <a href="javascript:doNothing();" class="btn btn-primary btn-mini validatetrigger" id="validate_1" title="Confirm Phone" successurl="<?php echo encode($this->baseUrl('profile/view/id/'.encode($user->getID()))); ?>"><i class="icon-envelope icon-white"></i> Confirm</a>
+                                            <label class="hide validate_1" title="1">1</label>                            
+                                            <div id="validate_1_error" style="margin-top:4px;"></div>
+                                        </span>
+                                        <span class="phone_after" id="phone_after_1">
+                                            <a id="loading_1" class="hidden"><img style="margin-left:0" src="<?php echo $this->baseUrl('images/loader.gif'); ?>" /></a>
+                                        </span>
+                                        <?php if(!isEmptyString($session->getVar(ERROR_MESSAGE)) ){ ?>
+                                            <div class="alert alert-error"><?php echo $session->getVar(ERROR_MESSAGE); ?></div>
+                                        <?php } ?>
+                                    <?php } ?>
+                                    <?php if(!$validated && $allowrevalidate){ ?>
+                                        <a href="javascript: void(0);<?php //echo $this->baseUrl('profile/validatephone/userphoneid/'.encode($userphoneid).'/pgc/true'); ?>" class="xaddpopup" rel="Re-send Validation Code" title="Re-send Validation Code" id="xvalidate" formtitle="indexform" successurl="<?php echo $this->baseUrl('profile/view/id/'.encode($user->getID())); ?>" action="<?php echo $this->baseUrl("profile/processvalidatephone"); ?>" submittext="Request Code">Re-send</a>
+                                    <?php } ?>
+                                </td>
+                                <td><label class="control-label">Alt Phone:</label>
+                                    <?php echo isEmptyString($altphone) ? '--' : $altphone; ?> <?php echo $svalid_text; ?>
+                                    <?php if(!$svalidated && !$sallowrevalidate && !isEmptyString($altphone)){ ?>
+                                        <a style="display:block; margin-top:10px;" href="<?php echo $this->baseUrl('profile/validatephone/type/2/id/'.encode($user->getID()).'/pgc/true'); ?>" class="btn btn-primary btn-mini addpopup width100" rel="Validate Phone" title="Validate Mobile Phone" id="validate" formtitle="indexform" successurl="<?php echo $this->baseUrl('profile/view/id/'.encode($user->getID())); ?>" action="<?php echo $this->baseUrl("profile/processvalidatephone"); ?>" submittext="Request Code">Validate Phone</a>
+                                    <?php } ?>
+                                    <?php if(!$svalidated && $sallowrevalidate && !isEmptyString($altphone)){ ?>
+                                        <span class="phone_before" id="phone_before_2">
+                                            <input type="text" name="phone_2" id="phone_2" placeholder="enter 6 digit code" title="Confirm Phone" value="" maxlength="6" class="validate validate_2" />
+                                            <a href="javascript:doNothing();" class="btn btn-primary btn-mini validatetrigger" id="validate_2" title="Confirm Phone" successurl="<?php echo encode($this->baseUrl('profile/view/id/'.encode($user->getID()))); ?>"><i class="icon-envelope icon-white"></i> Confirm</a>
+                                            <label class="hide validate_2" title="2">2</label>                            
+                                            <div id="validate_2_error" style="margin-top:4px;"></div>
+                                        </span>
+                                        <span class="phone_after" id="phone_after_2">
+                                            <a id="loading_2" class="hidden"><img style="margin-left:0" src="<?php echo $this->baseUrl('images/loader.gif'); ?>" /></a>
+                                        </span>
+                                        <?php if(!isEmptyString($session->getVar(ERROR_MESSAGE)) ){ ?>
+                                            <div class="alert alert-error"><?php echo $session->getVar(ERROR_MESSAGE); ?></div>
+                                        <?php } ?>
+                                    <?php } ?>
+                                    <?php if(!$svalidated && $sallowrevalidate && !isEmptyString($altphone)){ ?>
+                                        
+                                        <a href="javascript:void(0)<?php //echo $this->baseUrl('profile/validatephone/userphoneid/'.encode($userphone2id).'/pgc/true'); ?>" class="xaddpopup" rel="Re-send Validation Code" title="Re-send Validation Code" id="validate" formtitle="indexform" successurl="<?php echo $this->baseUrl('profile/view/id/'.encode($user->getID())); ?>" action="<?php echo $this->baseUrl("profile/processvalidatephone"); ?>" submittext="Request Code">Re-send</a>
+                                    <?php } ?>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="well row marginleft0" style="height:175px; padding-left:10px; margin-top:10px;">                        
+                        <table class="table noborder profile">                       
+                           <tr>
+                                <td style="width:50%;"><label class="control-label"><?php echo $this->translate("profile_country_label"); ?>:</label>
+                                <?php echo isEmptyString($address->getCountry()) ? '--' : $address->getCountryName(); ?></td>
+                                <td rowspan="2"><label class="control-label"><?php echo $this->translate("profile_address_label"); ?>:</label>
+                                <?php echo isEmptyString($address->getStreetAddress()) ? '--' : nl2br($address->getStreetAddress()); ?><br />
+                                </td>                                                             
+                            </tr>
+                            <tr>
+                            	<td><label class="control-label"><?php echo $this->translate("profile_city_label"); ?>:</label><?php echo isEmptyString($address->getCity()) ? '--' : $address->getCity(); ?></td>
+                            </tr>
+                        </table>
+                    </div>
+                </span> 
+                <span class="span3 pull-right" style="width:24%; margin-right:20px; ">
+                    <div id="xrow1_right" class="well row" style="min-height:115px;">
+                        <h3 class="well-legend margin0">Quick Links</h3>
+                        <table class="table">                       
+                           <tr>		                    
+                                <td class="formactions">
+								<?php if($isme){ ?>
+                          			<a class="btn btn-primary" style="" href="<?php echo $this->baseUrl('profile/index/id/'.encode($id)); ?>" id="update"><i class="icon-pencil icon-white"></i> Update Profile</a> &nbsp;
+                                <?php } ?>
+                                <?php if(isAdmin()){ ?>
+                                	<a style="display:inline-block; "href="javascript: void(0)" id="deleteline_multiple" title="Delete Entry" class="btn btn-mini deleteline noimgbutton" action="<?php echo $this->baseUrl('profile/delete/id/'.$user->getID()."/entityname/Profile/successurl/".encode($this->baseUrl('profile/list'))); ?>"><i class="icon-trash"></i></a>
+                                    <a class="btn btn-primary" style="" href="<?php echo $this->baseUrl('profile/list'); ?>" title="List Customers"><i class="icon-list icon-white"></i> Customers</a> &nbsp;
+                                <?php } ?>
+                              	</td>
+                           </tr>
+                        </table>
+                    </div>
+                    <div id="xrow2_right" class="well row" style="height:345px;">
+                        <h3 class="well-legend margin0">TBD</h3>
+                        
+                    </div>
+                </span>		
+        	</div>
+            <?php } ?>
+        	</form> 
+        </div>
+        <?php require APPLICATION_PATH."/views/scripts/profile/settings.phtml"; ?>
+    </div> 
+</div>
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

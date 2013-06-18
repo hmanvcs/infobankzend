@@ -1,0 +1,166 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+?>
+<style>
+#footertable td.section {
+	width:24%;
+	vertical-align:top;
+	padding:8px;
+}
+h2.footerheading {
+	color:#fff;
+	font-size:17px;
+	font-weight:bold;
+	border-bottom:1px solid #B5D2E8;
+	padding-bottom:5px;
+	margin-bottom:10px;
+	width:80%;
+	line-height:24px;
+}
+#newletterbg {
+	width:100%; 
+	background-color:#f1f1f1; 
+	min-height:50px; 
+	padding:10px 0 0 5px; 
+	khtml-border-radius: 3px; 
+	-moz-border-radius: 3px; 
+	-opera-border-radius: 3px; 
+	-webkit-border-radius: 3px; 
+	border-radius: 3px;
+}
+#receivemail {
+	display:inline-block; 
+	font-size:16px; 
+	line-height:24px; 
+	color:#e4eae4; 
+	padding:15px 0 10px 0; 
+	width:100%;
+}
+ul.footerlinks {
+	list-style:none;
+	margin:10px 0 0 5px;;
+	padding:0;
+}
+ul.footerlinks li {
+	display:block;
+	padding:0;
+	margin:0;
+	height:auto;
+	position:relative;
+}
+ul.footerlinks li > a {
+	font-size:16px;
+	padding:8px 0;
+	display:block;
+	width:95%;
+	font-family:'calibri','Telex',sans-serif;
+}
+ul.footerlinks.connect li {
+	padding-left:2px;	
+}
+ul.footerlinks.connect li img {
+	position:absolute; 
+	left:0; top:10px;
+}
+ul.footerlinks.connect li span {
+	padding-left:5px;
+}
+#bottomrightlinks {
+	list-style:none; 
+	margin:0; 
+	padding:0; 
+	position:absolute; 
+	bottom:5px;
+	left:5px;
+}
+#bottomrightlinks li {
+	float:left;
+	border-right:1px solid #C1D9EC;
+}
+#bottomrightlinks li:last-child {
+	border-right:none;	
+}
+#bottomrightlinks li a {
+	padding:5px 8px;
+	font-weight:bold;
+}
+</style>
+<table class="noborder margin0" id="footertable">
+	<tr>
+    	<td class="section">
+        	<h2 class="footerheading calfont">Quick Links</h2>
+            <ul class="footerlinks">
+            	<?php 
+					foreach($menulist as $key => $menuitem){ 
+						$menuurl = $this->baseUrl($menuitem['malias']);
+						$activeclass = '';
+							if($request->getParam('alias')  == $menuitem['malias']){
+								$activeclass = 'active';
+							}
+						
+				?>
+                	<li><a href="<?php echo $menuurl; ?>"><span><?php echo $menuitem['mname']; ?></span></a></li>
+                <?php } ?>
+            </ul>
+        </td>
+        <td class="section">
+        	<h2 class="footerheading calfont">Partners</h2>
+            <ul class="footerlinks">
+            	<li><a class="gonowhere"><span>Link 1</span></a></li>
+                <li><a class="gonowhere"><span>Link 2</span></a></li>
+                <li><a class="gonowhere"><span>Link 3</span></a></li>
+                <li><a class="gonowhere"><span>Link 4</span></a></li>
+            </ul>
+        </td>
+        <td class="section" style="width:23%;">
+        	<h2 class="footerheading calfont">TBD</h2>
+            <ul class="footerlinks connect">
+            	<li><a class="gonowhere"><span>Link 1</span></a></li>
+                <li><a class="gonowhere"><span>Link 2</span></a></li>
+                <li><a class="gonowhere"><span>Link 3</span></a></li>
+                <li><a class="gonowhere"><span>Link 4</span></a></li>
+            </ul>
+        </td>
+        <td class="section" style="border-left:2px solid #ACCCE5; padding-left:20px; width:auto;">
+        	<h2 class="footerheading calfont">Subscribe for Newsletter</h2>
+            <div id="newletterbg">
+            	<table style="width:98%;">
+                	<tr>
+                    	<td style="vertical-align:top;"><input type="text" style="width:160px;" name="subscribe_email" id="subscribe_email" class="span2" placeholder="Email" value="" /></td>
+                        <td style="vertical-align:top;"><a href="javascript: void(0)" id="newletter_trigger" class="btn btn-primary" style="padding:2px 5px 4px 5px; font-size:12px;">Subscribe</a></td>
+                    </tr>
+                    <tr>
+                    	<td colspan="2" class="padding0"><div id="process_error" style="margin-top:4px;"></div></td>
+                    </tr>
+                    <?php if(!isEmptyString($session->getVar('newsletter_success'))){ ?>
+                   		<tr><td colspan="2" class="padding0"><div class="alert alert-success clear"><a class="close" data-dismiss="alert">×</a><?php echo $session->getVar('newsletter_success'); ?></div></td></tr>
+                    <?php } ?>
+                    <?php if(!isEmptyString($session->getVar('newsletter_error'))){ ?>
+                   		<tr><td colspan="2" class="padding0"><div class="alert alert-error clear"><?php echo $session->getVar('newsletter_error'); ?></div></td></tr>
+                    <?php } ?>                  
+                </table>
+            </div>
+            <span class="calfont" id="receivemail">Provide your email address and we shall continously let you know of knew developments.</span>
+        </td>
+        </td>
+    </tr>
+    <tr>
+    	<td colspan="3" style="padding:0; height:30px; padding-right:40px;">
+        	<p style="text-align:center; color:#"><?php echo sprintf($this->translate("copyright"), date("Y"), $this->translate("appname")); ?>.</p>
+        </td>
+        <td style="padding:15px 0 0 15px;">
+        	<div style="position:relative; display:block;">
+            	<ul id="bottomrightlinks">
+                    <li><a href="<?php echo $this->baseUrl('aboutus/termsofservice'); ?>"><span>Terms of Use</span></a></li>
+                    <li><a href="<?php echo $this->baseUrl('aboutus/privacypolicy'); ?>"><span>Privacy Policy</span></a></li>
+                    <li><a href="<?php echo $this->baseUrl('faqs'); ?>" title="Frequently Asked Questions"><span>FAQs</span></a></li>
+                </ul>
+            </div>
+        </td>
+    </tr>
+</table>
+<?php
+	$session->setVar('newsletter_success', '');
+	$session->setVar('newsletter_error', '');
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

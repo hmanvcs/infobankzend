@@ -1,0 +1,71 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	
+	$title = $this->translate("useraccount_pagetitle_signup_confirm"); 
+	$this->headTitle($title); 
+	
+	// the usermaking the payment
+	$useraccount = new UserAccount();
+	$useraccount->populate(decode($request->id));
+	
+/*	$resending = false;
+	if($request->resend == '1'){
+		$sendresult = $useraccount->sendActivationCodeToMobile();
+		$resending = true;
+	}
+*/	
+	$posturl = $this->baseUrl("signup/activate/id/".encode($useraccount->getID())); 
+	if ($sessionhaserror) {
+		$useraccount->processPost($session->getVar(FORM_VALUES)); 
+	} 
+	
+?>
+<script>
+	$(document).ready(function() {
+		
+	}); 
+</script>
+<style>
+.centerblock {
+	display:block;
+	text-align:center;
+	width:100%;
+	margin-top:2px;
+	font-size:14px;
+}
+.normalblock {
+	display:block;
+	text-align:left;	
+	/*margin:0 auto;*/
+	margin-top:2px;
+	font-weight:bold;
+}
+</style>
+<span class="span7 well" style="margin-left:200px;">
+    <h1><?php echo $title; ?></h1>
+    <span class="span7 marginleft0">
+    <form id="activateform" action="<?php echo $posturl; ?>" method="post">
+        <table class="table">
+            <thead>
+                <tr>			
+                    <td>
+					<?php if(!$sessionhaserror) { ?>
+                    	<div class="alert alert-success"><a class="close" data-dismiss="alert">×</a>Registration completed successfully</div>
+                    <?php } ?>    
+                    </td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                	<label class="centerblock">Thank you for registering with <b><?php echo $this->translate("appname"); ?></b></label>
+                    <label class="centerblock">However, before you can get started, you have got to activate your account <br /> by clicking on the activation link sent to the email address you provided during registration.</label><br /> 
+                    <label class="centerblock"><br /><br />For any assistance please feel free to <a href="<?php echo $this->serverUrl($this->baseUrl('contactus')); ?>" title="Contact us">Contact us</a></label>
+                </td>
+            </tr>
+        </table>       
+	</form>
+    </span>	
+</span>
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

@@ -1,0 +1,52 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	
+	$title = "Help Center";
+	$this->headTitle($this->translate("appname")." | ".$title);
+
+?>
+<script>
+		
+</script>
+<style>
+.content h4 {
+	margin-top:5px;
+	margin-bottom:15px;
+	font-size:16px;	
+}
+td.qn {
+	font-weight:bold;
+}
+.table td.ansline1 {
+	color:#333333;
+	font-weight:bold;
+}
+#helpcategories {
+	width:100%;
+}
+#helpcategories li {
+	width:28%;
+	margin-right:0;
+	font-size:18px;
+	display:inline-block;
+}
+#helpcategories li a {
+	
+}
+.table {
+	margin-bottom:2px;
+}
+</style>
+<div class="row marginleft0">
+    <div class="span8 pull-left marginleft0 public_leftcolumn">
+        <div class="content" id="help">
+            <h1><?php echo $title; ?></h1> 
+            <h2>Frequently Asked Questions (FAQs)</h2>
+                       
+        </div>
+    </div>
+    <?php require APPLICATION_PATH."/views/scripts/index/righthandband.phtml"; ?>
+</div>
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

@@ -1,0 +1,37 @@
+<?php
+	include APPLICATION_PATH.'/includes/header.php';
+	
+?>
+<div class="container" style="height:40px;">
+  	<ul class="nav margin0 padding0 maxwidth" style="height:39px;">
+    	<li style="float:left; width:40%; height:39px; line-height:auto;" class="pull-left"></li>
+        <li style="float:right; width:50%; height:39px; line-height:auto;" class="dropdown pull-right maxheight">
+        	<?php if(!isEmptyString($userid)){ ?>
+                    <a style="text-align:center; width:200px; float:right;" data-toggle="dropdown" id="accountdrop" class="dropdown-toggle <?php echo !in_array($thecontroller, $publiccontrollers) ? 'loggedin' : ''; ?>" href="#"><?php echo $user->getName(); ?> <b class="caret"></b></a>
+                    <ul class="dropdown-menu span3">
+                        <li>
+                        <li><a href="<?php echo $this->baseUrl("profile/view/id/".encode($user->getID())); ?>" title="My Profile">My Profile</a></li>                                <li><a href="<?php echo $this->baseUrl("profile/view/id/".encode($user->getID())."/tab/account"); ?>" title="Account Settings">Account Settings</a></li>
+                        <li><a href="<?php echo $this->baseUrl("profile/view/id/".encode($user->getID())."/tab/account"); ?>" title="Change Password">Change Password</a></li>    
+                        <li class="divider"></li>
+                        <li><a href="<?php echo $this->baseUrl("faqs"); ?>" title="Get Help">Get Help</a></li>
+                        <li><a href="<?php echo $this->baseUrl("contactus"); ?>" title="Contact Us">Contact Us</a></li>
+                        <li class="divider"></li>
+                        <li><a href="<?php echo $this->baseUrl("user/logout"); ?>" title="Logout">Logout</a></li>
+                    </ul>
+            <?php } else { ?>
+                <form class="form-horizontal margin0 padding0" id="headerlogin" action="<?php echo $this->baseUrl('user/checklogin'); ?>" method="post">
+                    <table class="table maxwidth noborder nohover margin0 padding0 pull-right">
+                        <td></td>
+                        <td style="width:160px; padding-top:5px;"><input type="text" name="email" id="email" class="" placeholder="Email or Phone" style="height:18px; width:87%;" /></td>
+                        <td style="width:145px; padding-top:5px;"><input type="password" name="password" id="password" class="" placeholder="Password" style="height:18px; width:87%;" /></td>
+                        <td style="width:145px;"><button type="submit" id="login" class="btn btn-primary btn-mini" style="display:inline-block; padding:6px 10px;" title="Login"><i class="icon-lock icon-white"></i> Login</button>&nbsp;
+                            <a class="btn btn-mini" style="display:inline-block; color:#000; padding:6px 10px;" id="headersignup" type="submit" href="<?php echo $this->baseUrl('signup'); ?>"><i class="icon-user"></i> Signup</a>&nbsp;
+                    </table>
+                </form>
+			<?php } ?>                
+        </li>
+    </ul>
+</div>
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

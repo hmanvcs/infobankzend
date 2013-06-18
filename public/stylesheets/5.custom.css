@@ -1,0 +1,390 @@
+/* Plugin Styles */
+
+/* Jquery stepy styles */
+.button-back { float: left; }
+.button-next, .finish { float: right; }
+.button-back, .button-next, .finish {
+	/*border: 1px solid #C9C4BA; color: #7F0055; cursor: pointer; font: 10px verdana; padding: 3px 10px; text-decoration: none;
+	-khtml-border-radius: 3px; -moz-border-radius: 3px; -opera-border-radius: 3px; -webkit-border-radius: 3px; border-radius: 3px;*/
+	margin-bottom: 20px; margin-right: 10px;
+}
+.button-back {
+	margin-left: 10px;
+}
+.step {
+	border: 1px solid #DDD; clear: left; width: 100%;
+	-khtml-border-radius: 3px; -moz-border-radius: 3px; -opera-border-radius: 3px; -webkit-border-radius: 3px; border-radius: 3px;
+}
+/*.step label { color: #444; display: block; font: bold 10px verdana; margin: 10px 0 3px 7px; }*/
+/*.step legend { color: #4080BF; font: bold 14px verdana; padding: 0 2px 3px 2px; }*/
+/*.step input, .step textarea, .step select { border: 1px solid #AAA; font: 10px verdana; margin-left: 7px; }*/
+
+.stepy-titles { list-style: none; margin: 0 0 0 15px; padding: 0; width: 100%; }
+.stepy-titles li { color: #DDD; cursor: pointer; font: bold 16px verdana; float: left; padding: 10px 60px 10px 10px; }
+.stepy-titles li span { font: 11px verdana; display: block; }
+.stepy-titles .current-step { color: #369; cursor: auto; }
+
+/* Jquery tipsy styles */
+.tipsy { font-size: 11px; position: absolute; padding: 5px; z-index: 100000; margin-left:10px; width:190px;}
+.tipsy-inner { background-color: #000; color: #FFF; max-width: 200px; padding: 5px 8px 4px 8px; text-align: left;
+	border: 3px solid #959FA9;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+	background-color: #F9F9F9;
+	color: #454545;
+	font-weight: normal;
+	font-family: serif;
+}
+.tipsy-inner label {
+	display:block;
+	padding: 5px;
+	width: 170px;
+	margin:-4px 0 0 -6px;
+	border-bottom-width: 0;
+	color: white;
+	background: #3A79B8;
+	background-image: -moz-linear-gradient(top, #3A79B8, #56AADE);
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#3A79B8), to(#56AADE));
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#3A79B8,endColorstr=#56AADE);
+	-ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#3A79B8,endColorstr=#56AADE)";
+}
+/* Rounded corners */
+.tipsy-inner { border-radius: 3px; -moz-border-radius: 3px; -webkit-border-radius: 3px; }
+
+/* Uncomment for shadow */
+/*.tipsy-inner { box-shadow: 0 0 5px #000000; -webkit-box-shadow: 0 0 5px #000000; -moz-box-shadow: 0 0 5px #000000; }*/
+
+.tipsy-arrow { position: absolute; width: 0; height: 0; line-height: 0; border: 5px dashed #3A79B8; }
+
+/* Rules to colour arrows */
+.tipsy-arrow-n { border-bottom-color: #3A79B8; }
+.tipsy-arrow-s { border-top-color: #3A79B8; }
+.tipsy-arrow-e { border-left-color: #3A79B8; }
+.tipsy-arrow-w { border-right-color: #3A79B8; }
+
+.tipsy-n .tipsy-arrow { top: 0px; left: 50%; margin-left: -5px; border-bottom-style: solid; border-top: none; border-left-color: transparent; border-right-color: transparent; }
+.tipsy-nw .tipsy-arrow { top: 0; left: 10px; border-bottom-style: solid; border-top: none; border-left-color: transparent; border-right-color: transparent;}
+.tipsy-ne .tipsy-arrow { top: 0; right: 10px; border-bottom-style: solid; border-top: none;  border-left-color: transparent; border-right-color: transparent;}
+.tipsy-s .tipsy-arrow { bottom: 0; left: 50%; margin-left: -5px; border-top-style: solid; border-bottom: none;  border-left-color: transparent; border-right-color: transparent; }
+.tipsy-sw .tipsy-arrow { bottom: 0; left: 10px; border-top-style: solid; border-bottom: none;  border-left-color: transparent; border-right-color: transparent; }
+.tipsy-se .tipsy-arrow { bottom: 0; right: 10px; border-top-style: solid; border-bottom: none; border-left-color: transparent; border-right-color: transparent; }
+.tipsy-e .tipsy-arrow { right: 0; top: 50%; margin-top: -5px; border-left-style: solid; border-right: none; border-top-color: transparent; border-bottom-color: transparent; }
+.tipsy-w .tipsy-arrow { left: 0; top: 50%; margin-top: -5px; border-right-style: solid; border-left: none; border-top-color: transparent; border-bottom-color: transparent; }
+
+
+#el01 {padding:0} /* Remove padding */
+#el02 { /* Text and background colour, blue on light gray */
+color:#00f;
+background-color:#ddd
+}
+#el03 {background:url(/i/icon-info.gif) no-repeat 100% 50%} /* Background image */
+#el04 {border-width:6px} /* Border width */
+#el05 {border:2px dotted #00f} /* Border width, style and colour */
+#el06 {border:none} /* No border */
+#el07 {font-family:"Courier New",Courier} /* Different font */
+#el08 {font-size:2em} /* Bigger text */
+#el09 {font-size:0.5em} /* Smaller text */
+#el10 {font-weight:bold} /* Bold text */
+#el11 {padding:2em} /* Increase padding */
+#el12 {text-align:right} /* Change text alignment */
+fieldset p {margin:0} /* Remove margins from p elements inside fieldsets */
+
+/* @end */
+
+/*
+ *	generated by WOW Slider 3.1
+ *	template Quiet
+ */
+@import url("http://fonts.googleapis.com/css?family=Oswald");
+#wowslider-container1 { 
+	zoom: 1; 
+	position: relative; 
+	max-width:830px;
+	margin:0px auto 0px;
+	z-index:0;
+	border:none;
+	text-align:left; /* reset align=center */
+}
+* html #wowslider-container1{ width:830px }
+#wowslider-container1 .ws_images ul{
+	position:relative;
+	width: 10000%; 
+	height:auto;
+	left:0;
+	list-style:none;
+	margin:0;
+	padding:0;
+	border-spacing:0;
+	overflow: visible;
+	/*table-layout:fixed;*/
+}
+#wowslider-container1 .ws_images ul li{
+	width:1%;
+	line-height:0; /*opera*/
+	float:left;
+	font-size:0;
+	padding:0 0 0 0 !important;
+	margin:0 0 0 0 !important;
+}
+
+#wowslider-container1 .ws_images{
+	position: relative;
+	left:0;
+	top:0;
+	width:100%;
+	height:100%;
+	overflow:hidden;
+}
+#wowslider-container1 .ws_images a{
+	width:100%;
+	display:block;
+	color:transparent;
+}
+#wowslider-container1 img{
+	max-width: none !important;
+}
+#wowslider-container1 .ws_images img{
+	width:100%;
+	border:none 0;
+	max-width: none;
+	padding:0;
+}
+#wowslider-container1 a{ 
+	text-decoration: none; 
+	outline: none; 
+	border: none; 
+}
+
+#wowslider-container1  .ws_bullets { 
+	font-size: 0px; 
+	float: left;
+	position:absolute;
+	z-index:70;
+}
+#wowslider-container1  .ws_bullets div{
+	position:relative;
+	float:left;
+}
+#wowslider-container1  a.wsl{
+	display:none;
+}
+#wowslider-container1  .ws_bullets { 
+	padding: 10px; 
+}
+#wowslider-container1 .ws_bullets a { 
+	width:15px;
+	height:15px;
+	background: url(../images/custom/bullet.png) left top;
+	float: left; 
+	text-indent: -4000px; 
+	position:relative;
+	margin-left:3px;
+	color:transparent;
+}
+#wowslider-container1 .ws_bullets a:hover{
+	background-position: 0 50%;
+}
+#wowslider-container1 .ws_bullets a.ws_selbull{
+	background-position: 0 100%;
+}
+#wowslider-container1 a.ws_next, #wowslider-container1 a.ws_prev {
+	position:absolute;
+	display:none;
+	top:50%;
+	margin-top:-50px;
+	z-index:60;
+	height: 100px;
+	width: 60px;
+	background-image: url(../images/custom/arrows.png);
+}
+#wowslider-container1 a.ws_next{
+	background-position: 100% 0;
+	right:0;
+}
+#wowslider-container1 a.ws_prev {
+	left:0;
+	background-position: 0 0; 
+}
+* html #wowslider-container1 a.ws_next,* html #wowslider-container1 a.ws_prev{display:block}
+#wowslider-container1:hover a.ws_next, #wowslider-container1:hover a.ws_prev {display:block}
+/* bottom center */
+#wowslider-container1  .ws_bullets {
+    bottom:-35px;
+	left:50%;
+}
+#wowslider-container1  .ws_bullets div{
+	left:-50%;
+}
+#wowslider-container1 .ws_bullets .ws_bulframe {
+	bottom: 20px;
+}
+#wowslider-container1 .ws-title{
+	position: absolute;
+	top: 35px;
+	right: 60px;
+	height:250px;
+	width:275px;
+	z-index: 0;
+	padding:12px;
+	color: #000000;
+	background:#fff;
+    font-family:Oswald,Impact,Charcoal,sans-serif;
+	font-size: 16px;
+	text-shadow: 1px 1px 1px #BBBBBB;
+	line-height: auto;
+	border-radius:5px;
+	-moz-border-radius:5px;
+	-webkit-border-radius:5px;
+	opacity:0.6;
+	filter:progid:DXImageTransform.Microsoft.Alpha(opacity=60);	
+}
+#wowslider-container1 .ws-title div{
+	font-size: 25px;
+	text-shadow: 1px 1px 1px #000000;
+}#wowslider-container1 .ws_images ul{
+	animation: wsBasic 40s infinite;
+	-moz-animation: wsBasic 40s infinite;
+	-webkit-animation: wsBasic 40s infinite;
+}
+@keyframes wsBasic{0%{left:-0%} 5%{left:-0%} 10%{left:-100%} 15%{left:-100%} 20%{left:-200%} 25%{left:-200%} 30%{left:-300%} 35%{left:-300%} 40%{left:-400%} 45%{left:-400%} 50%{left:-500%} 55%{left:-500%} 60%{left:-600%} 65%{left:-600%} 70%{left:-700%} 75%{left:-700%} 80%{left:-800%} 85%{left:-800%} 90%{left:-900%} 95%{left:-900%} }
+@-moz-keyframes wsBasic{0%{left:-0%} 5%{left:-0%} 10%{left:-100%} 15%{left:-100%} 20%{left:-200%} 25%{left:-200%} 30%{left:-300%} 35%{left:-300%} 40%{left:-400%} 45%{left:-400%} 50%{left:-500%} 55%{left:-500%} 60%{left:-600%} 65%{left:-600%} 70%{left:-700%} 75%{left:-700%} 80%{left:-800%} 85%{left:-800%} 90%{left:-900%} 95%{left:-900%} }
+@-webkit-keyframes wsBasic{0%{left:-0%} 5%{left:-0%} 10%{left:-100%} 15%{left:-100%} 20%{left:-200%} 25%{left:-200%} 30%{left:-300%} 35%{left:-300%} 40%{left:-400%} 45%{left:-400%} 50%{left:-500%} 55%{left:-500%} 60%{left:-600%} 65%{left:-600%} 70%{left:-700%} 75%{left:-700%} 80%{left:-800%} 85%{left:-800%} 90%{left:-900%} 95%{left:-900%} }
+
+#wowslider-container1 .ws_shadow{
+	background: url(wowslider/shadow.png) left 100%;
+	background-repeat: no-repeat;
+	background-size:100%;
+	width:100%;
+	height:20%;
+	position: absolute;
+	left:0;
+	bottom:-20%;
+	z-index:-1;
+}
+* html #wowslider-container1 .ws_shadow{/*ie6*/
+	background:none;
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader( src='../images/custom/shadow.png', sizingMethod='scale');
+}
+*+html #wowslider-container1 .ws_shadow{/*ie7*/
+	background:none;
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader( src='../images/custom/shadow.png', sizingMethod='scale');
+}
+#wowslider-container1 .ws_bullets  a img {
+	text-indent:0;
+	display:block;
+	bottom:15px;
+	left:-55px;
+	visibility:hidden;
+	position:absolute;
+    -moz-box-shadow: 0 0 5px #999999;
+    box-shadow: 0 0 5px #999999;
+    border: 5px solid #FFFFFF;
+	max-width:none;
+}
+#wowslider-container1 .ws_bullets a:hover img{
+	visibility:visible;
+}
+
+#wowslider-container1 .ws_bulframe div div{
+	height:48px;
+	overflow:visible;
+	position:relative;
+}
+#wowslider-container1 .ws_bulframe div {
+	left:0;
+	overflow:hidden;
+	position:relative;
+	width:110px;
+	background-color:#FFFFFF;
+}
+#wowslider-container1  .ws_bullets .ws_bulframe{
+	display:none;
+	overflow:visible;
+	position:absolute;
+	cursor:pointer;
+    -moz-box-shadow: 0 0 5px #999999;
+    box-shadow: 0 0 5px #999999;
+    border: 5px solid #FFFFFF;
+}
+#wowslider-container1 .ws_bulframe span{
+	display:block;
+	position:absolute;
+	bottom:-11px;
+	margin-left:-5px;
+	left:55px;
+	background:url(../images/custom/triangle.png);
+	width:15px;
+	height:6px;
+}
+
+/* Slide show on home page */
+#example {
+	/*height:360px;*/
+	height:auto;
+	position:absolute;
+	margin-left:0;
+}
+#frame {
+	height: 500px;
+    left: -80px;
+	*left: -73px;
+    position: absolute;
+    top: -3px;
+    width: 1400px;
+    z-index: 0;
+}
+#slides {
+	position:absolute;
+	top:7px;
+	left:-6px;
+	*left:1px;
+	z-index:100;
+}
+.slides_container {
+	width:1400px;
+	overflow:hidden;
+	position:relative;
+	display:none;
+}
+.slides_container div.slide {
+	width:1400px;
+	height:500px;
+	display:block;
+}
+div.slide img {
+	width: 100%;
+}
+#slides .next,#slides .prev {
+	display:none;
+}
+#slides .next {
+	left:585px;
+}
+.pagination {	
+	display:none;
+}
+.caption {
+	z-index:500;
+	position:absolute;
+	top:60px;
+	left:0;
+	height:75px;
+	width:980px;
+	padding:5px 10px 5px 15px;
+	margin:0 auto;;	
+	background:#000;
+	background:rgba(0,0,0,.5);
+	filter:alpha(opacity=70);
+	width:1400px;
+	font-size:14px;	
+	color:#fff;
+	border-top:1px solid #4D4D4D;
+}
+.caption h3 {
+	font-weight:bold;
+}
+.caption a {
+	text-decoration:underline;
+	color:#fff;
+}

@@ -1,0 +1,38 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	
+	$title = $this->translate("useraccount_pagetitle_resetpassword"); 
+	$this->headTitle($title);
+
+	// the usermaking the payment
+	$useraccount = new UserAccount();
+	
+?>
+<style>
+#contentcolumn {
+	min-height:0;
+	height:320px;
+}
+</style>
+<div class="row span12 marginleft0" style="margin:0 auto;">
+
+<span class="span7" style="margin-left:220px;">
+	<h1 class="aligncenter"><?php echo $title; ?></h1>
+	<table class="table" style="margin-top:20px;">
+    <thead>
+        <tr>
+				<td><div class="alert alert-error"><a class="close" data-dismiss="alert">×</a>Invalid Reset Code</div></td>
+        </tr>
+    </thead>
+   	<tr>
+		  	<td>An invalid reset code has been detected. Please try to recover your password once again<br /><br />		
+				<a href="<?php echo $this->baseUrl("user/recoverpassword"); ?>">Click here</a> to reset your password<br /><br />
+        		For any assistance please feel free to <a href="<?php echo $this->serverUrl($this->baseUrl('contactus')); ?>" title="Contact us">Contact us</a><br /><br />
+        </td>
+    </tr>    
+</table>
+</span>
+</div>	
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

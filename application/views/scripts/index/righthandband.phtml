@@ -1,0 +1,22 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	
+	$controllername = $request->getControllerName();
+	$controlleraction = $request->getActionName();
+	
+	$user = new UserAccount();
+	$user->populate($userid);
+	
+?>
+
+<div class="public_rightcolumn row widget">
+    <div class="widgetsection height200 ">
+        <h3>TBD </h3>
+        <div>
+        
+        </div>
+    </div>
+</div>
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

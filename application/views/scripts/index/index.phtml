@@ -1,0 +1,78 @@
+<?php 
+	require_once APPLICATION_PATH.'/includes/header.php';
+
+	$title = 'Welcome to '.$this->translate("companyname");
+	
+	$this->headMeta()->appendName('keywords', '');
+	$this->headMeta()->appendName('description', $title);
+	
+	$this->headTitle($title);  
+	
+?>
+<script type="text/javascript" src="<?php echo $this->baseUrl('javascript/custom/jquery.cycle.all.latest.js'); ?>"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $('.slideshow').cycle({
+		fx: 'fade' ,
+		speed:  4000 ,
+		next:   '#next2', 
+	    prev:   '#prev2' 
+	});
+});
+</script>
+<style>
+#contentwrapper {
+	margin-top:0;
+	background:none;
+}
+#contentcolumn {
+	padding-left:0;
+	padding-top:0;
+	margin-top:420px;
+	background:none;	
+}
+.widgetsection {
+	background-color:#fafafa;
+}
+li.widgetsection h3 {
+	margin:0 10px;
+}
+li.widgetsection h3 a {
+	text-align:left;
+	padding:0;
+}
+</style>
+<div class="row margin0" style="margin-bottom:10px;">
+	<ul class="default">
+    	<li class="widgetsection" style="width:35%; margin-right:20px; height:200px">
+        	<h3><a class="gonowhere">Welcome to InfoBank</a></h3>
+        </li>
+        <li class="widgetsection" style="width:35%; margin-right:0; height:200px"">
+        	<h3><a class="gonowhere">How it works</a></h3>
+        </li>
+        <li class="widgetsection" style="width:24%; float:right; height:200px"">
+        	<h3><a class="gonowhere">Benefits</a></h3>
+        </li>
+    </ul>
+</div>
+<div class="row margin0" style="margin-bottom:10px;">
+    <div class="widgetsection" style="height:375px; float:left; width:72%;">
+        <h3><a class="gonowhere">Featured Enterprise</a></h3>
+    </div>
+    <div class="widgetsection" style="height:375px; float:right; width:23%;">
+    	<h3><a class="gonowhere">Quick Business Guide</a></h3>
+    </div>
+</div>
+<div class="row margin0" style="margin-bottom:10px;">
+	<div id="columnleft" class="widgetsection" style="height:200px; float:left; width:97%;">
+        <h3><a class="gonowhere">Featured Business</a></h3>
+    </div>
+</div>
+<div class="row margin0" style="margin-bottom:10px;">
+	<div id="columnleft" class="widgetsection" style="height:200px; float:left; width:97%;">
+        <h3><a class="gonowhere">Usefull Links</a></h3>
+    </div>
+</div>
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configdata>
+	<dashboard>
+		<label>menu_dashboard</label>
+		<controller>dashboard</controller>
+		<id>dashboard</id>
+	</dashboard>
+	<administration>
+		<label>menu_administration</label>
+		<controller>appconfig</controller> 
+		<action>overview</action>
+		<resource>Application Settings</resource>
+		<privilege>list</privilege>		
+		<id>appconfig</id>
+	</administration>
+	<farmer_list>
+		<label>menu_farmers</label>
+		<controller>farmer</controller>
+		<action>list</action>
+		<resource>Is Admin</resource>
+		<privilege>view</privilege>
+		<id>farmers</id>
+	</farmer_list>
+	<farmer_group>
+		<label>menu_farm_groups</label>
+		<controller>farmgroup</controller>
+		<action>list</action>
+		<resource>Is Admin</resource>
+		<privilege>view</privilege>
+		<id>farmgrps</id>
+	</farmer_group>
+</configdata>

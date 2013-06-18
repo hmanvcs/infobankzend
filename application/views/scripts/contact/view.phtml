@@ -1,0 +1,197 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	
+	// default title is to enable adding any payee
+	$title = $this->translate("contact_pagetitle_view");
+	
+	$contact = new Contact();
+	$contact->populate(decode($request->id));
+	$title = $contact->getName();
+
+	# lookup for contact types
+	$contacttype = new LookupType();
+	$contacttype->setName("ALL_CONTACT_TYPES");
+	$all_contact_types = $contacttype->getOptionValuesAndDescription();
+	
+	$this->headTitle($title);
+?>
+<script>
+	$(document).ready(function() {		
+		equalHeight($("#location_left, #location_right"));
+		equalHeight($("#business_left, #business_right"));
+	}); 
+</script>
+<style>
+
+</style>
+<div>
+	<?php require APPLICATION_PATH."/views/scripts/index/leftcolumn.phtml"; ?>
+    <div id="centercolumn">
+        <form id="viewform" class="form-horizontal">
+			<?php if(!isEmptyString($session->getVar(SUCCESS_MESSAGE)) ){ ?>
+                <div class="alert alert-success"><a class="close" data-dismiss="alert">×</a><?php echo $session->getVar(SUCCESS_MESSAGE); ?></div>
+            <?php } ?>
+            <div class="row margin0" style="padding:2px; margin-bottom:10px;">
+            	<span class="pull-left well lighter margin0" style="width:70%;">
+                	<table class="table noborder margin0">
+                    	<tr>
+                            <td style="padding:10px 10px 0 0; width:70%;">
+                                <h3 class="well-legend"><?php echo $title; ?></h3>                   
+                                <?php if($contact->isPerson()){ ?>
+                                <table class="table smalltdpad">
+                                    <tr>
+                                        <td width="40%;"><label class="control-label"><?php echo $this->translate("contact_firstname_label"); ?>:</label></td>
+                                        <td><?php echo isEmptyString($contact->getFirstName()) ? "--" : $contact->getFirstName(); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label class="control-label"><?php echo $this->translate("contact_lastname_label"); ?>:</label></td>
+                                        <td><?php echo isEmptyString($contact->getLastName()) ? "--" : $contact->getLastName(); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label class="control-label"><?php echo $this->translate("contact_othernames_label"); ?>:</label></td>
+                                        <td><?php echo isEmptyString($contact->getOtherNames()) ? "--" : $contact->getOtherNames(); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label class="control-label"><?php echo $this->translate("contact_salutation_label"); ?>:</label></td>
+                                        <td><?php echo isEmptyString($contact->getSalutation()) ? "--" : $contact->getSalutationLabel(); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label class="control-label"><?php echo $this->translate("contact_gender_label"); ?>:</label></td>
+                                        <td><?php echo isEmptyString($contact->getGenderLabel()) ? "--" : $contact->getGenderLabel(); ?></td>
+                                    </tr>
+                                </table>    
+								<?php } else { ?> 
+                                <table class="table smalltdpad">
+                                	<tr>
+                                        <td colspan="2"><br/></td>
+                                    </tr>
+                                    <tr>
+                                        <td width="40%;"><label class="control-label"><?php echo $this->translate("contact_companyname_label"); ?>:</label></td>
+                                        <td><?php echo $contact->getOrgName(); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2"><br/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label class="control-label"><?php echo $this->translate("contact_contactperson_label"); ?>:</label></td>
+                                        <td><?php echo isEmptyString($contact->getContactPerson()) ? "--" : $contact->getContactPerson(); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2"><br/></td>
+                                    </tr>
+                                </table>
+                                <?php } ?>
+                            </td>
+                            <td style="vertical-align:top; padding-left:0; padding-top:40px;">
+                            	<img style="width:200px;" src="<?php echo $contact->isPerson() ? $this->baseUrl('images/contactperson.png') : $this->baseUrl('images/contactorg.png') ; ?>" />
+                            </td>
+                        </tr>
+                        <tr>
+                        	<td colspan="2" style="padding:0;">
+                            	<table class="margin0 noborder smalltdpad">
+                                    <tr>
+                                        <td width="20%;"><label class="control-label">Category:</label></td>
+                                        <td><?php echo isEmptyString($contact->getCategoryName()) ? "--" : $contact->getCategoryName(); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label class="control-label">Tags:</label></td>
+                                        <td><?php echo isEmptyString($contact->getCategoryList()) ? "--" : $contact->getCategoryList(); ?></td>
+                                    </tr>
+                                    <tr>
+                                      <td><label class="control-label"><?php echo $this->translate("contact_visibility_label"); ?>:</label></td>
+                                      <td><?php echo $contact->getVisibilityLabel(); ?></td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </span>
+                <span class="pull-right padding0" style="width:23%; margin-left:5px;">
+                	<div class="well row" style="height:160px;">
+                        <h3 class="well-legend">Quick Links</h3>
+                        <table class="table">                       
+                           <tr>		                    
+                                <td class="formactions">
+                                <?php if($contact->getFarmerID() == $farmerid  || $contact->getCreatedBy() == $userid || isAdmin()){ ?>
+                                    <a class="btn btn-primary" href="<?php echo $this->baseUrl('contact/index/id/'.encode($contact->getID())); ?>" id="update"><i class="icon-pencil icon-white"></i> Update</a>                                       
+                                <?php } ?>
+                                <a class="btn btn-primary" href="<?php echo $this->baseUrl('contact/list/id/'.encode($contact->getID())); ?>" id="list"><i class="icon-list icon-white"></i> All Contacts</a>     
+                                </td>
+                           </tr>
+                        </table>                           
+                    </div>
+                </span>
+            </div>
+            <div class="row margin0" style="padding:2px; margin-bottom:10px;">
+            	<span class="pull-left" style="width:50%; margin-right:5px;">
+                	<div id="location_left" class="well lighter margin0" style="min-height:190px;"> 
+                        <h3 class="well-legend">Contacts</h3>
+                        <table class="table noborder">                       
+                            <tr>
+                                <td style="width:30%;"><label class="control-label"><?php echo $this->translate("contact_phone_label"); ?>:</label></td>
+                                <td><?php echo $contact->getPhone(); ?></td>
+                            </tr>
+                            <tr>
+                                <td><label class="control-label"><?php echo $this->translate("contact_altphone_label"); ?>:</label></td>
+                                <td><?php echo isEmptyString($contact->getPhone2()) ? "--" : $contact->getPhone2(); ?></td>
+                            </tr>
+                            <tr>
+                                <td><label class="control-label">Email<?php //echo $this->translate("contact_email_label"); ?>:</label></td>
+                                <td><?php echo isEmptyString($contact->getEmail()) ? "--" : $contact->getEmail(); ?></td>
+                            </tr>
+                            <tr>
+                                <td><label class="control-label"></label></td>
+                                <td></td>
+                            </tr>
+                        </table>
+                    </div>
+                </span>
+                <span class="pull-right" style="width:49%;">
+                	<div id="location_right" class="well lighter margin0" style="min-height:190px;"> 
+                        <h3 class="well-legend">Location</h3>
+                        <table class="table noborder">                       
+                            <tr>
+                                <td style="width:45%;"><label class="control-label"><?php echo $this->translate("contact_district_label"); ?>:</label></td>
+                                <td><?php echo isEmptyString($contact->getLocationID()) ? '--' : $contact->getLocation()->getName(); ?></td>
+                            </tr>
+                            <tr>
+                                <td><label class="control-label"><?php echo $this->translate("global_county_label"); ?>:</label></td>
+                                <td><?php echo isEmptyString($contact->getCountyID()) ? '--' : $contact->getCounty()->getName(); ?></td>
+                            </tr>
+                            <tr>
+                                <td><label class="control-label"><?php echo $this->translate("global_subcounty_label"); ?>:</label></td>
+                                <td><?php echo isEmptyString($contact->getSubcountyID()) ? '--' : $contact->getSubcounty()->getName(); ?></td>
+                            </tr>
+                            <tr>
+                                <td><label class="control-label"><?php echo $this->translate("contact_address_label"); ?>:</label></td>
+                                <td><?php echo isEmptyString($contact->getAddress()) ? '--' : nl2br($contact->getAddress()); ?></td>
+                            </tr>
+                        </table>
+                    </div>
+                </span>
+            </div>
+            <div class="row margin0" style="padding:2px;">
+                <span class="maxwidth">
+                	<div id="business_right" class="well lighter margin0" style="min-height:190px;"> 
+                        <h3 class="well-legend">Services</h3>
+                        <table class="table noborder">                       
+                           	<tr>
+                                <td><label class="control-label"><?php echo $this->translate("contact_businessdescription_label"); ?>:</label>
+                                	<?php echo isEmptyString($contact->getBusinessDescription()) ? "--" : nl2br($contact->getBusinessDescription()); ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label class="control-label"><?php echo $this->translate("contact_goodsorservicesoffered_label"); ?>:</label>
+									<?php echo isEmptyString($contact->getGoodsOrServicesOffered()) ? "--" : nl2br($contact->getGoodsOrServicesOffered()); ?>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>    
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

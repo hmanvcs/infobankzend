@@ -1,0 +1,70 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	
+	$title = "Report Dashboard"; 
+	$this->headMeta()->appendName('keywords', '');
+	$this->headMeta()->appendName('description', $title);
+	
+	$farmer = new Farmer();
+	$farmer->populate($farmerid);
+	
+	$farms = $farmer->getFarms();
+	
+	$farmid = $farmer->getFarm()->getID();
+	$farm = $farmer->getFarm();
+	$thefarmid = $farmid;
+	
+	$this->headTitle($title);
+?>
+<div>
+	<?php require APPLICATION_PATH."/views/scripts/index/leftcolumn.phtml"; ?>
+    <div id="centercolumn">
+        <div class="widgetsection" style="min-height:460px; height:auto;">
+            <h3 style="color:#282727;"><?php echo $title; ?></h3>
+            <div>
+                <span class="marginleft0">
+                    <ul class="sectionitems">
+                    	<li>
+                            <a class="list" href="<?php echo $this->baseUrl('report/certificate'); ?>" title="Provisional Membership Certificate"><img src="<?php echo $this->baseUrl('images/benefit_report.png'); ?>" /><br /><h2>Provisional Membership <br />Certificate</h2></a>
+                        </li>
+						<?php if(isAdmin() || isFarmGroupAdmin()){ ?>
+                            <li>
+                                <a class="list" href="<?php echo $this->baseUrl('report/primarybaseline'); ?>" title="Farmers Profile Summary Report"><img src="<?php echo $this->baseUrl('images/benefit_report.png'); ?>" /><br /><h2>Farmers Profile <br />Summary Report</h2></a>
+                            </li>
+                        <?php } else { ?>
+                            <li>
+                                <a class="list" href="<?php echo $this->baseUrl('report/primarybaseline/id/'.$farmerid); ?>" title="Farmis Baseline Summary Report"><img src="<?php echo $this->baseUrl('images/benefit_report.png'); ?>" /><br /><h2>Farmis Baseline <br />Summary Report</h2></a>
+                            </li>
+                        <?php } ?>
+                        <?php if(isAdmin() || isFarmGroupAdmin()){ ?>
+                            <li>
+                                <a class="list" href="<?php echo $this->baseUrl('report/baselinedetail'); ?>" title="Farmers Profile Detailed Report"><img src="<?php echo $this->baseUrl('images/benefit_report.png'); ?>" /><br /><h2>Farmers Profile <br />Detailed Report</h2></a>
+                            </li>
+						<?php } else { ?>
+                        	<li>
+                                <a class="list" href="<?php echo $this->baseUrl('report/baselinedetail/id/'.$farmerid); ?>" title="Farmis Baseline Detailed Report"><img src="<?php echo $this->baseUrl('images/benefit_report.png'); ?>" /><br /><h2>Farmis Baseline <br />Detailed Report</h2></a>
+                            </li>
+						<?php } ?>
+                        <?php if(isAdmin() || isFarmGroupAdmin()){ ?>
+                            <li>
+                                <a class="list" href="<?php echo $this->baseUrl('report/allfarmers'); ?>" title="Farmers Bio Data Report"><img src="<?php echo $this->baseUrl('images/benefit_report.png'); ?>" /><br /><h2>All Farmers Data <br />Detailed Report</h2></a>
+                            </li>
+						<?php } ?>
+                        <?php if(isFarmer()){ ?>
+                        <li>
+                            <a class="list" href="<?php echo $this->baseUrl("finance/statement/farmid/".$thefarmid); ?>" title="Profit and Loss Statement"><img src="<?php echo $this->baseUrl('images/topmenu_market.png'); ?>" /><br /><h2>Profit & Loss <br />Statement</h2></a>
+                        </li>
+                        <li>
+                            <a class="list" href="<?php echo $this->baseUrl("resource/allprices"); ?>" title="Market Prices"><img src="<?php echo $this->baseUrl('images/topmenu_market.png'); ?>" /><br /><h2>Current Market <br />Prices Report</h2></a>
+                        </li>
+                        <?php } ?>
+                    </ul>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+<?php
+	$clearsessionformvalues = true; 
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

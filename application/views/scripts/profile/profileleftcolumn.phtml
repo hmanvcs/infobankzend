@@ -1,0 +1,62 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+
+	$controller = $request->getControllerName();
+	$action = $request->getActionName();
+	if($controller == 'profile' && isEmptyString($request->tab)){
+		$request->setParam('tab', 'basics'); 
+	}
+	// debugMessage($user->toArray());
+?>
+<script>
+$(document).ready(function() {
+	// override default tab
+	<?php if(!isEmptyString($request->tab)){ ?>
+		$("#tabs").tabs({ selected:'<?php echo $request->tab; ?>', fx: {opacity: 'toggle'} });	   
+	<?php } ?>
+	$('#tabs').tabs({
+		// the selected tab
+		selected: '<?php echo $request->tab; ?>'
+	});
+	
+	<?php if($controller != 'profile'){ ?>
+		$("#tabs ul li#tab_summary").removeClass("ui-state-active").removeClass("ui-tabs-selected");
+	<?php } ?>
+	
+	$("#tabs ul#leftnav li a").click(function(e){
+		var currentclass = $(this).attr('class');
+		var oldclass = '<?php echo $request->tab; ?>';
+		if(currentclass != oldclass || currentclass == 'subscription'){
+			$(".form-horizontal."+currentclass).html("<a id='loading' class='xhidden' style='text-align:center; display:block; margin-top:75px;'><span style='display:block; margin-bottom:15px; font-weight:bold;'>Loading...</span><img style='margin-left:-10px;' src='<?php echo $this->baseUrl('images/farmisloader.gif'); ?>' /></a>").css({'display':'block'});
+			var url = '';
+			var controller = '<?php echo $controller; ?>';
+			var action = '<?php echo $action; ?>';
+			
+			if(controller == 'profile' && action == 'index'){
+				var url = "<?php echo $this->baseUrl("profile/index/id/".encode($user->getID())."/tab/"); ?>"+currentclass;
+			}
+			if((controller == 'profile' && action == 'view') || action == 'picture' || controller == 'payment'){
+				var url = "<?php echo $this->baseUrl("profile/view/id/".encode($user->getID())."/tab/"); ?>"+currentclass;
+			}
+			if(!isEmptyString(url)){
+				location.href = url;  
+			}
+		}
+	});
+	
+	$("#tabs").tabs().addClass('ui-tabs-vertical ui-helper-clearfix');
+	$("#tabs li").removeClass('ui-corner-top').addClass('ui-corner-left');
+	
+}); 
+</script>
+<div class="span3 marginleft0" id="left">    
+    <div class="well" id="profiletop">
+        <div id="profileinfo"> 
+			<img id="profileimage" src="<?php echo $user->getMediumPicturePath(); ?>" alt="Update Profile Photo" />
+        </div>
+    </div>
+    <ul id="leftnav" style="width:97%;">
+        <li id="tab_basics"><a href="#basics" class="basics">My Profile</a></li>
+        <li id="tab_account"><a href="#account" class="account">Account Settings</a></li>   
+    </ul>
+</div>

@@ -1,0 +1,104 @@
+<div id="account">
+            <h2>Account Settings</h2>
+            <form id="profileform-account" class="form-horizontal account">
+                <?php if($request->tab == 'account'){ ?>
+                <?php if(!isEmptyString($session->getVar(SUCCESS_MESSAGE)) ){ ?>
+                    <div class="alert alert-success"><a class="close" data-dismiss="alert">×</a><?php echo $session->getVar(SUCCESS_MESSAGE); ?></div>
+                <?php } ?>
+                <?php if($sessionhaserror) { ?>
+                    <div class="alert alert-error"><?php echo $session->getVar(ERROR_MESSAGE); ?></div>
+                <?php } ?> 
+                <div class="row" style="margin-left:0px;">
+                    <span class="span6 marginleft0" style="width:97%;">
+                        <div class="well row marginleft0" style="min-height:150px; padding-left:10px;">     
+                        <h3 class="well-legend">Login Credentials</h3>                   
+                            <table class="table">                       
+                               <tr>		                    
+                                    <td width="20%"><label class="control-label leftalign">Email: </label></td>
+                                    <td><?php echo isEmptyString($user->getEmail()) ? '--' : $user->getEmail(); ?> &nbsp;
+                                    	<a href="<?php echo $this->baseUrl('profile/changeemail/id/'.encode($user->getID()).'/pgc/true'); ?>" class="addpopup changeemail pull-right" title="Change Email" rel="Change Email" id="changeemail" formtitle="indexform" successurl="<?php echo $this->baseUrl('profile/view/id/'.encode($user->getID()).'/tab/account'); ?>" action="<?php echo $this->baseUrl("profile/processchangeemail"); ?>">Change Email</a></td>
+                               </tr>
+                               <?php if(!isEmptyString($user->getEmail2()) && !isEmptyString($user->getActivationKey())){ ?>
+                                   <tr>		                    
+                                        <td width="20%"><label class="control-label leftalign">New Email Requested: </label>
+                                         <span class="pagedescription alert alert-info" style="display:block; text-align:center; padding:2px; margin-top:5px; margin-bottom:0;">Confirmation pending</span>
+                                        </td>
+                                        <td><div class="makerelative">
+											<?php echo $user->getEmail2(); ?> <br />
+                                        	<span class="blocked" style="padding-top:5px; margin-bottom:0; padding-bottom:0;">
+                                            	<input type="text" name="code" id="code" placeholder="enter 6 digit code" title="Confirm Email" value="" maxlength="6" style="width:70px; padding:3px;" class="padding3" />
+                                                <a href="javascript:doNothing();" class="btn btn-primary btn-mini" id="confirmemail" userid="<?php echo encode($user->getID()); ?>" ref="<?php echo encode($user->getEmail2()); ?>" title="Confirm Email"><i class="icon-envelope icon-white"></i> Confirm</a>
+                                                <div id="code_email_error" style="margin-top:2px;"></div>
+                                            </span>
+                                        
+                                        	<a href="<?php echo $this->baseUrl('profile/resendemailcode/id/'.encode($user->getID())); ?>" style="position:absolute; right:0; top:0;" title="Resend Activation code" id="resend">Resend code</a></div></td>
+                                   </tr>
+                               <?php } ?>
+                               <tr>		                    
+                                    <td><label class="control-label leftalign">Phone: </label></td>
+                                    <td><div class="makerelative"><?php echo isEmptyString($phone) ? '--' : $phone; ?> 
+                                    	
+                                    	<?php if(!$user->isValidated(1)){ ?>
+											<?php echo $valid_text; ?>
+                                            <?php if(!$validated && !$allowrevalidate && !isEmptyString($phone)){ ?>
+                                               <a style="display:block; margin-top:10px;" href="<?php echo $this->baseUrl('profile/validatephone/id/'.encode($user->getID()).'/pgc/true/type/1'); ?>" class="btn btn-primary btn-mini addpopup width100" rel="Validate Phone" title="Validate Mobile Phone" id="validate" formtitle="indexform" successurl="<?php echo $this->baseUrl('profile/view/id/'.encode($user->getID()).'/tab/account'); ?>" action="<?php echo $this->baseUrl("profile/processvalidatephone"); ?>" submittext="Request Code">Validate Phone</a>
+                                            <?php } ?>
+                                            <?php if(!$validated && $allowrevalidate){ ?>
+                                                <a href="javascript: void(0);<?php //echo $this->baseUrl('profile/validatephone/userphoneid/'.encode($userphoneid).'/pgc/true'); ?>" class="xaddpopup" rel="Re-send Validation Code" title="Re-send Validation Code" id="xvalidate" formtitle="indexform" successurl="<?php echo $this->baseUrl('profile/view/id/'.encode($user->getID()).'/tab/account'); ?>" action="<?php echo $this->baseUrl("profile/processvalidatephone"); ?>" submittext="Request Code">Re-send</a>
+                                            <?php } ?>
+                                            <?php if(!$validated && $allowrevalidate){ ?>
+                                                <span class="phone_before" id="phone_before_1">
+                                                    <input type="text" name="phone_1" id="phone_1" placeholder="enter 6 digit code" title="Confirm Phone" value="" maxlength="6" class="validate validate_1" />
+                                                    <a href="javascript:doNothing();" class="btn btn-primary btn-mini validatetrigger" id="validate_1" title="Confirm Phone" successurl="<?php echo encode($this->baseUrl('profile/view/id/'.encode($user->getID()).'/tab/account')); ?>"><i class="icon-envelope icon-white"></i> Confirm</a>
+                                                    <label class="hide validate_1" title="1">1</label>                            
+                                                    <div id="validate_1_error" style="margin-top:4px;"></div>
+                                                </span>
+                                                <span class="phone_after" id="phone_after_1">
+                                                    <a id="loading_1" class="hidden"><img style="margin-left:0" src="<?php echo $this->baseUrl('images/loader.gif'); ?>" /></a>
+                                                </span>
+                                            <?php } ?>
+                                        <?php } ?>
+                                    	<?php if(!$user->hasPendingActivation(1) && $user->isValidated(1)){ ?>
+                                        	<a href="<?php echo $this->baseUrl('profile/changephone/id/'.encode($user->getID()).'/pgc/true'); ?>" class="addpopup changephone" style="position:absolute; right:0; top:0;" title="Change Phone" rel="Change Phone" id="changephone" formtitle="indexform" successurl="<?php echo $this->baseUrl('profile/view/id/'.encode($user->getID()).'/tab/account'); ?>" action="<?php echo $this->baseUrl("profile/processchangephone"); ?>">Change Phone</a>
+                                        <?php } ?></div>
+                                    </td>
+                               </tr>
+                               <?php if(!isEmptyString($altphone) && $user->hasPendingActivation(2)){ ?>
+                               <tr>		                    
+                                    <td><label class="control-label leftalign">New Phone: </label>
+                                    	<span class="pagedescription alert alert-info" style="display:block; text-align:center; padding:2px; margin-top:5px; margin-bottom:0;">Confirmation pending</span>
+                                    </td>
+                                    <td><div class="makerelative">
+											<?php echo $altphone; ?> &nbsp;
+                                        	<span class="blocked" style="padding-top:5px; margin-bottom:0; padding-bottom:0;">
+                                            	<input type="text" name="code" id="code" placeholder="enter 6 digit code" title="Confirm Phone" value="<?php //echo $user->getSecondaryPhone()->getActivationKey(); ?>" maxlength="6" style="width:70px; padding:3px;" class="padding3" />
+                                                <a href="javascript:doNothing();" class="btn btn-primary btn-mini" id="confirmphone" userid="<?php echo encode($user->getID()); ?>" ref="<?php echo encode($user->getFormattedPhone(2)); ?>" title="Confirm Phone"><i class="icon-envelope icon-white"></i> Confirm</a>
+                                                <div id="code_phone_error" style="margin-top:2px;"></div>
+                                            </span>
+                                        
+                                        	<a href="javascript: void(0)<?php // echo $this->baseUrl('profile/resendphonecode/id/'.encode($user->getID())); ?>" style="position:absolute; right:0; top:0;" title="Resend Activation code" id="resend">Resend code</a></div>
+                                    </td>
+                               </tr>
+                               <?php } ?>
+                               <tr>		                    
+                                    <td><label class="control-label leftalign"><?php echo $this->translate("useraccount_password_label"); ?>: </label></td>
+                                    <td><b style="font-size:16px;">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</b> &nbsp;
+                                    <a class="changepassword pull-right" id="changepassword" rel="Change Password" href="<?php echo $this->baseUrl('profile/changepassword/pgc/true/id/'.encode($user->getID())); ?>">Change Password</a></td>
+                               </tr>
+                               <tr>		                    
+                                    <td><label class="control-label leftalign">Account Status: </label></td>
+                                    <td><?php echo $user->isUserActive() ? 'Active' : 'In Active'; ?></td>
+                               </tr>
+                            </table>
+                        </div>
+                    </span>
+                </div>
+                <div class="well row marginleft0" style="min-height:200px; width:94%;">
+                    <h3 class="well-legend">Prefference Settings</h3>
+                    <table class="table">                       
+                        
+                    </table>
+                </div>
+                <?php } ?>
+            </form>
+        </div>

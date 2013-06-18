@@ -1,0 +1,131 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+		
+	$title = $this->translate("dashboard_pagetitle");
+	// meta data
+	$this->headTitle($title); 
+	
+	$user = new UserAccount();
+	$user->populate($userid);
+?>
+<script>
+$(document).ready(function(){
+	// auto populate contact details 
+	$("#marketprices").html('<div style="padding-top:100px;" class="centeralign blocked"><label class="centeralign blocked">loading...</label><br />'+$("#wait").html()+'</div>');
+	$("#fuelprices").html('<div style="padding-top:100px;" class="centeralign blocked"><label class="centeralign blocked">loading...</label><br />'+$("#wait").html()+'</div>');
+	$.get("<?php echo $this->baseUrl('graph/commoditypriceexport/pgc/true'); ?>", 
+	   {			
+		cachebuster: new Date().getTime()}, 			   
+		function(data){			
+			// alert(data);			
+			$('#marketprices').html(data);
+		}
+	);
+	
+	$.get("<?php echo $this->baseUrl('graph/fuelpriceexport/pgc/true'); ?>", 
+	   {			
+		cachebuster: new Date().getTime()}, 			   
+		function(data){			
+			// alert(data);			
+			$('#fuelprices').html(data);
+		}
+	);
+	
+	$("a.welcome_farmgrp, a.welcome_farmer").click(function(){
+		var message = '<label class="blockcontainer">Confirm hiding this panel';
+		hideArea(message, '<?php echo $this->baseUrl('profile/dashupdate/area/welcome/id/'.$user->getID()); ?>');
+	});
+	
+	function hideArea(message, url) {
+		bootbox.confirm(message, function(confirmed) {
+			if(confirmed){
+				window.location.href = url;					
+			} else {
+				return false;
+			}
+		});
+	}
+	
+	
+});
+</script>
+<style>
+#contentcolumn {
+	
+}
+
+#dashleft {
+	margin:0 5px 0 0;
+	width:98%;
+	float:left;
+}
+#admindash {
+	margin:0 5px 0 0;
+	width:100%;
+	float:left;
+}
+#dashleft .widgetsection {
+	width:100%;
+}
+#dashright {
+	width:29%;
+	margin:0;
+	padding:0;
+}
+.widgetsection {
+	margin-bottom:10px;
+}
+.widgetsection h3 {
+	font-size:15px;
+}
+.intro {
+	color:#000; 
+	margin:10px 10px;
+}
+.intro p {
+	font-size:15px; 
+}
+.whatnext {
+    margin: 5px 0 10px 10px;
+    padding: 5px 0 5px 0;
+	line-height:auto;
+    text-align: left;
+	border-bottom:2px solid #E0E0E0;
+	color:#498D0F;
+	font-size:14px;
+	width:130px;
+	font-weight:bold;
+}
+
+</style>	
+<div class="blocked clear maxwidth">
+	<?php require APPLICATION_PATH."/views/scripts/index/leftcolumn.phtml"; ?>
+    <div id="centercolumn">
+        <div class="blocked maxwidth">
+            <div class="pull-left" id="dashleft">
+                <div class="widgetsection makerelative" style="min-height:130px;">
+                    <h3 style="color:#00436D;">Welcome <?php echo $user->getFirstName(); ?></h3>
+                    <div>
+                    </div>
+                </div>
+                <div class="widgetsection height300">
+                    <h3 style="color:#00436D;">At a Glance</h3>
+                    <div>
+                    </div>
+                </div>
+                <!--<div class="widgetsection height200">
+                    <h3>Widget</h3>
+                    <div>
+                    </div>
+                </div>-->
+            </div>
+            <!--<div id="dashright" class="row widget">
+                
+               
+            </div>-->
+        </div>
+    </div>
+</div>
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

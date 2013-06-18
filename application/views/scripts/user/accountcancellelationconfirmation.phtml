@@ -1,0 +1,18 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	$title = "Account Cancelled";
+	$this->headTitle($title); 
+
+	$show_left_column = false;
+	$show_right_column = false;
+	
+?>
+<h1><?php echo $title; ?></h1>
+Your <?php echo $this->translate("appname"); ?> account has been cancelled as per your request and an email has been sent to the e-mail address we have on file for your account.<br />
+<br />
+If you don't see the email in your inbox, please check your <b>Junk</b> mail folder. Note that it may take a while for you to receive the cancellation email depending on your email service provider. <br />
+<br />
+If you do not receive the email or have any other questions, please contact us at <a href="mailto:<?php echo $config->notification->supportemailaddress; ?>"><?php echo $config->notification->supportemailaddress; ?></a>
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

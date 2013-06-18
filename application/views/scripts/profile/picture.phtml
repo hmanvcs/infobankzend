@@ -1,0 +1,264 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	
+	$id = decode($request->id);
+	if(isEmptyString($id)){
+		$id = $farmerid;
+	}
+	$type = $request->type;
+	if(isEmptyString($type)){
+		$type = 'photo';
+	}
+	
+	$farmer = new Farmer();
+	$farmer->populate($id);
+	
+	# profile for one viewing
+	$isme = false;
+	if($farmerid == $farmer->getID()){
+		$isme = true;
+	}
+	
+	# determine farm
+	$hasfarm = false;
+	$hasmultiplefarms = false;
+	$hasnofarm = false;
+	$countfarms = $farmer->getFarms()->count();
+	if($countfarms == 0){
+		$farmlabel = "Setup Farm";
+		$hasnofarm = true;
+	}
+	if($countfarms == 1){
+		$hasfarm = true;
+		$farmid = $farmer->getFarms()->get(0)->getID();
+		$farmlabel = "Manage Farm";
+	}
+	if(!isEmptyString($farmer->getFarm()->getID())){
+		$hasfarm = true;
+		$farmid = $farmer->getFarm()->getID();
+	}
+	if($countfarms > 1){
+		$hasmultiplefarms = true;
+		$farmlabel = "Manage Farms";
+	}
+	
+	if(isEmptyString($request->tab)) {
+		$request->setParam('tab', 'personal');
+	}
+	
+	if($type == 'photo'){
+		$title = "Upload Profile Photo";
+	}
+	if($type == 'sign'){
+		$title = "Upload Signature";
+	}
+	if(!isEmptyString($request->crop)){
+		if($type == 'photo'){
+			$title = "Crop Profile Photo"; 
+		}
+		if($type == 'sign'){
+			$title = "Crop Signature"; 
+		}
+	}
+	
+	$posturl = $this->baseUrl("farmer/processpicture");
+	$this->headTitle($title);
+	
+?>
+<script>
+$(document).ready(function() {
+	
+	<?php if(isEmptyString($request->crop)){ ?>
+		// form validation
+		$("#indexform").validate({		
+			// define the validation rules one field at a time
+			rules: {
+				profileimage: "required"
+			}, 
+			// the messages for each of the fields being validated
+			messages: {		
+				profileimage: "Please browse for image on computer"
+			},
+			// custom error positions
+			errorPlacement: function(error, element) {
+				switch(element.attr("name")){					
+					default:
+						if(element.hasClass("useid_error")){
+							error.appendTo("#"+element.attr("id")+"_error");
+						} else {
+							error.appendTo("#"+element.attr("name")+"_error");
+						}
+						break;
+				}			
+			}
+		});
+	<?php } else { ?>
+		<?php if($type == 'photo'){ ?>
+			$('#photo').imgAreaSelect({ 
+				aspectRatio: '1:1', 
+				handles: true,
+				fadeSpeed: 200, 
+				minWidth: 100,
+				maxWidth: 350,
+				x1: 0, y1: 0, x2: 200, y2: 200,
+				/*onSelectChange: preview,*/
+				onSelectEnd: function (img, selection) {
+					$('input[name="x1"]').val(selection.x1);
+					$('input[name="y1"]').val(selection.y1);
+					$('input[name="x2"]').val(selection.x2);
+					$('input[name="y2"]').val(selection.y2);
+					$('input[name="h"]').val(selection.height);
+					$('input[name="w"]').val(selection.width);            
+				}
+			});
+		<?php } ?>	
+		
+		<?php if($type == 'sign'){ ?>
+			$('#photo').imgAreaSelect({ 
+				aspectRatio: '2:1', 
+				handles: true,
+				fadeSpeed: 200, 
+				minWidth: 100,
+				maxWidth: 350,
+				x1: 0, y1: 0, x2: 200, y2: 100,
+				/*onSelectChange: preview,*/
+				onSelectEnd: function (img, selection) {
+					$('input[name="x1"]').val(selection.x1);
+					$('input[name="y1"]').val(selection.y1);
+					$('input[name="x2"]').val(selection.x2);
+					$('input[name="y2"]').val(selection.y2);
+					$('input[name="h"]').val(selection.height);
+					$('input[name="w"]').val(selection.width);            
+				}
+			});
+		<?php } ?>	
+	<?php } ?>
+	
+	// remove box style if person has no profile picture
+	<?php if($farmer->hasProfileImage()){ ?>
+		$("#profileinfo").addClass('new_pic');
+	<?php } ?>
+	
+}); 
+</script>
+<style>
+h3.well-legend {
+	color:#333333;
+	font-size:14px;
+}
+#contentcolumn {
+	height:auto;
+	min-height:0;
+}
+</style>
+<div class="row margin0">
+	<span class="span11 margin0">        
+       <table class="table noborder margin0">
+            <tr>
+                <td style="vertical-align:top; width:190px; padding-left:40px; padding-right:25px;">
+                    <table class="table noborder margin0" style="width:180px;">
+                        <tr>
+                            <td>
+                            	<?php if($type == 'photo'){ ?>
+                                	<h3 class="well-legend">Current Photo</h3>
+                                <?php } ?>
+                                <?php if($type == 'sign'){ ?>
+                                	<h3 class="well-legend">Current Signature</h3>
+                                <?php } ?>
+                                
+                                <?php if($type == 'photo'){ ?>
+                                	<div id="profileinfo" style="margin-top:15px;">
+                                    	<img id="xprofileimage" src="<?php echo $farmer->getUser()->getMediumPicturePath(); ?>" />
+                                    </div>
+                                <?php } ?>
+                                <?php if($type == 'sign'){ ?>
+                                	<div class="imagecontainer" style="margin-top:15px;">
+                                		<img id="xprofileimage" width="180" height="90" src="<?php echo $farmer->getLargeSignPath(); ?>" />
+                                    </div>
+                                <?php } ?>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td style="vertical-align:top;">
+					<?php if(!isEmptyString($session->getVar(SUCCESS_MESSAGE)) ){ ?>
+                        <div class="alert alert-success"><a class="close" data-dismiss="alert">×</a><?php echo $session->getVar(SUCCESS_MESSAGE); ?></div>
+                    <?php } ?>	
+                    <?php if($sessionhaserror) { ?>
+                        <div class="alert alert-error"><?php echo $session->getVar(ERROR_MESSAGE); ?></div>
+                    <?php } ?>
+					<?php if(isEmptyString($request->crop)){ ?>
+                        <form id="pictureform" action="<?php echo $posturl; ?>" method="post" enctype="multipart/form-data">					
+                            <table class="table noborder margin0">
+                                <tr>
+                                    <td style="vertical-align:top; border-bottom:2px dotted #e2e2e2; padding-bottom:50px;">
+                                        
+                                        <?php if($type == 'photo'){ ?>
+                                            <h3 class="well-legend">Upload a Photo</h3>
+                                        <?php } ?>
+                                        <?php if($type == 'sign'){ ?>
+                                            <h3 class="well-legend">Upload new Signature</h3>
+                                        <?php } ?>
+                                        <label style="display:block; margin-top:5px;">You can upload a JPG or PNG file (Max size 2MB)</label>
+                                        <input class="file" type="file" name="profileimage" id="profileimage" />
+                                        <input type="hidden" id="id" name="id" value="<?php echo encode($farmer->getID()); ?>" />
+                                        <input type="hidden" id="type" name="type" value="<?php echo $type; ?>" />
+                                        <input type="hidden" class="successurl" id="<?php echo URL_SUCCESS; ?>" name="<?php echo URL_SUCCESS; ?>" value="<?php echo $this->baseUrl('farmer/view/id/'.encode($farmer->getID())); ?>" />
+                    					<input type="hidden" class="failureurl" id="<?php echo URL_FAILURE; ?>" name="<?php echo URL_FAILURE; ?>" value="<?php echo $this->baseUrl('farmer/picture/id/'.encode($farmer->getID())); ?>" />
+                                        <div id="profileimage_error"></div>
+                                    </td>
+                                </tr>  
+                                <tr>
+                                    <td style="padding-top:25px;"><button style="" type="submit" class="btn btn-primary" id="upload" name="submit" title="Upload"><i class="icon-upload icon-white"></i>&nbsp; Upload</button> or <a href="<?php echo $this->baseUrl("farmer/view/id/".encode($farmer->getID())); ?>" title="<?php echo $this->translate("global_button_cancel"); ?>"><?php echo $this->translate('global_button_cancel'); ?></a>&nbsp;
+                                    </td>
+                                </tr>       
+                            </table>
+                        </form>	
+					<?php } else { ?>
+                        <form action="<?php echo $this->baseUrl("farmer/croppicture"); ?>" id="indexform" method="post">
+                            <table class="table noborder margin0">
+                                <tr>
+                                    <td style="vertical-align:top; border-bottom:2px dotted #e2e2e2; padding-bottom:30px;">
+                                        <?php if($type == 'photo'){ ?>
+                                        	<h3 class="well-legend">Resize/Crop Photo</h3>
+                                            <label style="margin:15px; margin-left:-2px; display:block; font-size:13px; font-style:normal;" class="pagedescription">Drag the handles on the image canvas below to resize and click <b>'Crop Photo'</b> to save changes.</label>
+                                            <img src="<?php echo $farmer->getUser()->getLargePicturePath(); ?>" id="photo" />
+                                        <?php } ?>
+                                        <?php if($type == 'sign'){ ?>
+                                        	<h3 class="well-legend">Resize/Crop Signature</h3>
+                                            <label style="margin:15px; margin-left:-2px; display:block; font-size:13px; font-style:normal;" class="pagedescription">Drag the handles on the image canvas below to resize and click <b>'Crop Image'</b> to save changes.</label>
+                                            <img src="<?php echo $farmer->getLargeSignPath(); ?>" id="photo" />
+                                        <?php } ?>
+                                        
+                                        <input type="hidden" name="x1" value="0" />
+                                        <input type="hidden" name="y1" value="0" />
+                                        <input type="hidden" name="x2" value="200" />
+                                        <input type="hidden" name="y2" value="200" />
+                                        <input type='hidden' name='w' value='200' />
+                                        <input type='hidden' name='h' value='200' />
+                                        <input type="hidden" id="id" name="id" value="<?php echo encode($farmer->getID()); ?>" />
+                                        <input type="hidden" id="type" name="type" value="<?php echo $type; ?>" />
+                                        <?php if($type == 'photo'){ ?>
+                                        <button style="float:right; display:inline-block;" type="submit" id="startcrop" class="btn btn-primary btn-large">Crop Photo</button>
+                                        <?php } ?>
+                                        <?php if($type == 'sign'){ ?>
+                                        <button style="float:right; display:inline-block;" type="submit" id="startcrop" class="btn btn-primary btn-large">Crop Image</button>
+                                        <?php } ?>
+                                   </td>
+                                </tr>  
+                                <tr>
+                                    <td>
+                                    </td>
+                                </tr>       
+                            </table>
+                        </form>
+                    <?php } ?>
+                </td>
+            </tr>
+        </table>
+	</span>
+</div>  
+<?php
+	$session->setVar(SUCCESS_MESSAGE, '');
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

@@ -1,0 +1,542 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<?php
+   require_once APPLICATION_PATH.'/includes/commonfunctions.php';
+?>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="<?php echo $this->baseUrl('favicon.ico'); ?>" rel="shortcut icon" type="image/x-icon" /> 
+<?php echo $this->headTitle(); ?>
+<?php echo $this->headMeta(); ?>
+<?php
+  $request = Zend_Controller_Front::getInstance()->getRequest();
+  $config = Zend_Registry::get("config"); 
+  $session = SessionWrapper::getInstance();
+  $isloggedin = false; 
+  $userid = ""; 
+  if (!isEmptyString($session->getVar("userid"))) {
+	$isloggedin = true; 
+	$userid = $session->getVar("userid");  
+	$acl = getACLInstance(); 
+  }
+	   
+  $jsfiles = glob("javascript/*.js");
+  $cssfiles = glob("stylesheets/*.css");
+  
+  foreach ($cssfiles as $css) {
+	// use baseURL() to output the full URL of the cached file and use it as normal with headLink()
+	$this->minifyHeadLink()->appendStylesheet($css);
+  } 
+  echo $this->minifyHeadLink(); 
+  
+  foreach ($jsfiles as $js) {
+	// use baseURL() to output the full URL of the cached file and use it as normal with headLink(). also use setFile so that each file is added
+	$this->minifyHeadScript()->appendFile($js);
+  }  
+  echo $this->minifyHeadScript(); 
+  $os = browser_detection('os');
+  $islinux = false;
+  if($os != 'nt'){
+	  $islinux = true;
+  }
+  	
+?>
+<script type="text/javascript">
+var datepickerOpts = {
+		showOn: 'both', 
+		buttonImage: '<?php echo $this->baseUrl('images/calendar.png'); ?>', 
+		buttonImageOnly: true,
+		changeMonth: true,
+		changeYear: true,
+		minDate: '-<?php echo $config->dateandtime->mindate; ?>Y',
+		maxDate: '+<?php echo $config->dateandtime->maxdate; ?>Y',
+		dateFormat: '<?php echo $config->dateandtime->javascriptmediumformat; ?>',
+		hideIfNoPrevNext: true,
+		showButtonPanel: true, 
+		currentText: 'Now'		
+	}; 
+$(document).ready(function() {
+	// auto grow textareaa with class expanding
+	$(".expanding").elastic();
+	$(".expanding").trigger('update');
+	
+	// make the datefields readonly
+	$(".datefield").attr('readOnly', 'true');
+	$(".readonly").each(function(){
+		$(this).attr('readonly','readonly');
+	});
+		
+	// turn select controls to chosen type selects
+	$(".chzn-select").chosen();
+
+	// if a select field with chosen changes, revalidate the field 
+	$("select.chzn-select:not('.novalidate')").chosen().change(function(){
+		$("form").validate().element(this);
+	});
+		
+	$(".datefield").change(function(){
+		$("form").validate().element(this);
+	});
+		
+	// UI tabs
+	$("#tabs").tabs();
+	
+	// initialise the accordion
+	$("#accordion").accordion();
+	
+	// custom accordion functionality to allow collapsing more than one container at a time
+	$("#notaccordion").addClass("ui-accordion ui-widget ui-helper-reset ui-accordion-icons")
+.find("h3")
+        .addClass("ui-accordion-header ui-helper-reset ui-corner-all ui-state-default")
+        .prepend('<span class="ui-icon ui-icon-triangle-1-e"/>')
+        .click(function() {
+            $(this).toggleClass("ui-accordion-header-active").toggleClass("ui-state-active")
+                        .toggleClass("ui-state-default").toggleClass("ui-corner-bottom")
+                .find("> .ui-icon").toggleClass("ui-icon-triangle-1-e").toggleClass("ui-icon-triangle-1-s")
+                .end().next().slideToggle(function() {
+						// resize content column height when toggle is completed
+						/*if($("#notaccordion").height() < 500 ){
+							$("#contentcolumn").css({'height': 1000});							
+						} else {
+							$("#contentcolumn").css({'height': $("#notaccordion").height() + 500});						
+						}*/
+					}).toggleClass("ui-accordion-content-active clicked");
+            return false;
+        })
+        .next().addClass("ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom").hide();
+	
+	// copy the classes to html radio labels from the containing div elements
+	// this is a work around since Zend_Form_Element_Radio generation does not support adding labels to the labels around the containing elements 
+	$('div.radio > label').each(function(){
+		$(this).addClass($(this).parent().attr('class')); 
+	});
+	// select all checkboxes with a class Y
+	$("input:checkbox.Y, input:checkbox.1, input:radio.Y, input:radio.1").attr('checked', true); 
+			
+	// If there are any errors in validating a form, make form height and content column equal
+	$(":submit").click(function(){
+		if(!($("form.form-horizontal, form.form-vertical").valid())){
+			resizeContentForm();
+		} 
+	});	
+	
+	// auto submit for list filters with the specified class, and all selects in a container with class filter 
+	$(".autosubmitsearchform, .filtercontainer select, #itemcountperpage, select.autofilter").not(".autosubmitsearchform").each(function(){
+		$(this).change(function(){
+			// clear the values in the search field
+			clearValue("searchterm"); 
+			// submit the form containing the dropdown
+			$(this).parents("form:first").submit(); 
+		});
+	});
+	
+	$("div.alert-error").css({'background': 'url("<?php echo $this->baseUrl('images/cross.png'); ?>") no-repeat #EDDBE3 5px 8px'});
+	$("div.alert-success").css({'background': 'url("<?php echo $this->baseUrl('images/tick.png'); ?>") no-repeat #CCDDBB 5px 8px'});
+	
+	// return to previous page for cancel buttons
+	$('a.cancel').click(function(){
+        parent.history.back();
+        return false;
+    });
+
+	// reset tab index
+    var tabindex = 1;
+    $('input,select,textarea').each(function() {
+        if (this.type != "hidden") {
+            var $input = $(this);
+            $input.attr("tabindex", tabindex);
+            tabindex++;
+        }
+    });
+
+    $("img.ui-datepicker-trigger").attr('title','You may use calendar to select a date');
+	// set drop down date from date picker
+	$("#dateofbirth").change(function() {
+		var thedate = $(this).val();
+		if(!isEmptyString(thedate)){
+			var d = new Date(thedate);
+			// alert(d.getFullYear()+" - "+d.getMonth()+1+" - "+d.getDate());
+			$("#birthyear").val(d.getFullYear());
+			$("#birthmonth").val(d.getMonth()+1);
+			$("#birthday").val(d.getDate());
+		}
+	});
+
+	$("img.ui-datepicker-trigger").each(function(){
+    	var theid = $(this).attr('id');
+	    var thepath = '<?php echo $this->baseUrl('images/questionmark.png'); ?>';
+	    $('<a href="javascript: void(0);" class="qcontainer"><img src="'+thepath+'" /></a>').insertAfter(this);
+    });
+
+	$(".hastooltip").each(function(){		
+	    var theid = $(this).attr('id');
+	    var thepath = '<?php echo $this->baseUrl('images/questionmark.png'); ?>';
+		if($(this).attr('title') != "undefined" || $(this).attr('title') != ""){
+			$('<a href="javascript: void(0);" class="qcontainer" id="q_'+theid+'"><img src="'+thepath+'" /></a>').insertAfter(this);
+		    $("#q_"+theid).attr('title', $(this).attr('title')).addClass('qtooltip');
+		}	    
+	});
+	$(".hastooltip_custom").each(function(){		
+	    var theid = $(this).attr('id');
+	    var thepath = '<?php echo $this->baseUrl('images/questionmark.png'); ?>';
+		if($(this).attr('title') != "undefined" || $(this).attr('title') != ""){
+			$("#tooltip_"+theid).html('<a href="javascript: void(0);" class="qcontainer" id="q_'+theid+'"><img src="'+thepath+'" /></a>').addClass('customtooltip');
+		    $("#q_"+theid).attr('title', $(this).attr('title')).addClass('qtooltip');
+		}	    
+	}); 
+
+	// $('.hastooltip').tipsy({fade: true, gravity: 'w', html: true, trigger: 'focus', offset: 15});
+    $('.qtooltip, label:has(input#type-1), label:has(input#type-2)').tipsy({fade: true, gravity: 'w', html: true, trigger: 'hover', offset: -5});
+    $(".hastooltip").attr('title','');
+	
+	$('#dialog').modal({
+		keyboard: false,
+		backdrop: 'static'
+	});
+	$('#dialog').modal('hide');
+	
+	$(".disablefield").each(function(){
+		$(this).attr('readonly', true).attr('disabled', true);
+	});
+	
+	// add farmer to group
+	$('.addpopup').click(function(e){
+		// $("#"+idparam).qtip("hide");
+		e.preventDefault();
+		var title = $(this).attr('rel');
+		var href = $(this).attr('href');
+		var formid = $(this).attr('formtitle');
+		var posturl = $(this).attr('action');
+		var successurl = $(this).attr('successurl');
+		var submittext = $(this).attr('submittext'); 
+		// alert(posturl);
+		// popup title
+		$(".modal-header h3").html(title);
+		// load content
+		$("#dialogcontent").html($("#dialogbody #loading").html());
+		$("#dialogcontent").load(href);  	
+		// then show it after the changes have been made
+		$('#dialog').modal('toggle');
+		
+		// check for default submit button text
+		if(!isEmptyString(submittext)){
+			$("#new #save").html('<i class="icon-ok icon-white"></i> '+submittext);
+		}
+		
+		// save dialog
+		$('#save').on('click', function(e){
+			// $('#dialog').modal('hide');
+			if ($("#"+formid).valid() == true) {
+				// disable buttons
+				$(".modelcancel").hide();
+				$(this).hide();
+				// post form
+				$.post(  
+					posturl,  
+					$("#"+formid).serialize(),  
+					function(data){
+						// alert(data); return false;
+						var url = successurl;    
+						$(location).attr('href',url);
+					}  
+				); // close the $.post
+				$("#dialogcontent").hide(); 										
+				$("#dialogbody #loading").show();
+			}
+		});
+		// cancel model
+		$(".modelcancel").on('click', function(e){
+			$("#dialog").modal('hide');
+		});		
+		$('#dialog').on('hidden', function () {
+			// location.reload(true);
+			$(".dialog, body").css("overflow", "auto");
+		});
+		
+		$(".dialog, body").css("overflow", "hidden");
+		 
+		return false;
+	});
+	
+	$.validator.addClassRules("greaterthanzero", {
+		greaterthanzero: true				
+	});
+	$.validator.addMethod("greaterthanzero", function(value, element) {				
+		if(!isEmptyString(value) && parseFloat(value) <=0){
+			return false;
+		}
+		return true;
+	}, "Should be greater than zero");
+	
+	$.validator.addClassRules("inputrequired", {
+		input_not_empty: true				
+	});
+	$.validator.addMethod("input_not_empty", function(value, element) {				
+		if(isEmptyString(value)){
+			return false;
+		}
+		return true;
+	}, "Please enter a value");
+	
+	$.validator.addClassRules("selectrequired", {
+		select_not_empty: true				
+	});
+	$.validator.addMethod("select_not_empty", function(value, element) {				
+		if(isEmptyString(value)){
+			return false;
+		}
+		return true;
+	}, "Please select");
+	
+	// Add validation rules for number fields on each line
+	$.validator.addClassRules("isnumber", {
+		validate_number: true				
+	});
+	$.validator.addMethod("validate_number", function(value, element) {				
+		if(!IsValidAmount(value)){
+			return false;
+		}
+		return true;
+	}, "Invalid Number");
+	
+	$.validator.addClassRules("isdecimal", {
+		validate_decimal: true				
+	});
+	$.validator.addMethod("validate_decimal", function(value, element) {				
+		if(!IsValidDecimal(value)){
+			return false;
+		}
+		return true;
+	}, "Invalid Size");
+	
+	$.validator.addClassRules("isamount", {
+		validate_amount: true				
+	});
+	$.validator.addMethod("validate_amount", function(value, element) {				
+		if(!IsValidAmount(value)){
+			return false;
+		}
+		return true;
+	}, "Invalid Amount");
+	
+	// Add validation rules for maximum characters for content
+	$.validator.addClassRules("max50content", {
+		validate_50_string: true				
+	});
+	$.validator.addMethod("validate_50_string", function(value, element) {				
+		if(value.length > 50){
+			return false;
+		}
+		return true;
+	}, "Only a maximum of 50 Characters allowed!");
+	
+	$.validator.addClassRules("max255content", {
+		validate_255_string: true				
+	});
+	$.validator.addMethod("validate_255_string", function(value, element) {				
+		if(value.length > 255){
+			return false;
+		}
+		return true;
+	}, "Only a maximum of 255 Characters allowed!");
+	
+	// Add validation rules for maximum characters for content
+	$.validator.addClassRules("strictalpha", {
+		validate_strict_alpha: true				
+	});
+	$.validator.addMethod("validate_strict_alpha", function(value, element) {				
+		return this.optional(element) || /^[a-zA-Z0-9-_]*$/i.test(value);
+	}, "Only letters, digits, underscore and no space are allowed");
+	
+	// Add validation rules for maximum characters for content
+	$.validator.addClassRules("endafterstart", {
+		enddateafterstartdate: true				
+	});
+	
+	// function to validate the enddate being greater than the start date
+	$.validator.addMethod("enddateafterstartdate", function(value, element) {            
+		var startDate = $(".startdate").val();  
+		if($.trim(value) == ""){
+			return true;
+		}
+		if($.trim(startDate) == ""){
+			return false;
+		}
+		return Date.parse(startDate) <= Date.parse(value);        
+	}, "Please select an End Date after the Start Date");
+	
+	// delete rules
+	$("#deleteline, .deleteline").click(function() {
+		var message = '<label class="blockcontainer">Are you sure you want to delete this entry? <br /><br /> Click <b>OK</b> to confirm, and <b>Cancel</b> to ignore</label>';
+		var custom_msg = $(this).attr('message');
+		if(!isEmptyString(custom_msg) && custom_msg != 'undefined'){
+			var message = '<label class="blockcontainer">'+custom_msg+' <br /><br /> Click <b>OK</b> to confirm, and <b>Cancel</b> to ignore</label>';
+		}
+		var url = $(this).attr('action');
+		// alert(url);
+		removeLine(message, url);
+	});
+	function removeLine(message, url) {
+		bootbox.confirm(message, function(confirmed) {
+			if(confirmed){
+				window.location.href = url;					
+			} else {
+				return false;
+			}
+		});
+	}
+	// placeholder  
+	$('input, textarea').placeholder();
+	
+	// refresh captcha
+	$('img#refresh').click(function() { 			
+		change_captcha();
+	});
+	
+	$('img#refresh').click();
+	function change_captcha(){
+		$("#code").val(''); 
+		$.get("<?php echo $this->baseUrl('signup/getcaptcha'); ?>", 
+			// parameters for the request along with a cachebuster to stop IE from caching the request
+			{cachebuster: new Date().getTime()}, 			   
+			function(data){			
+				//alert(data);
+				$("#validcode").val(data); 
+				$("#captcha").html(data).css({'font-size':'20px'});			
+			}
+		);
+	}
+	
+	// change password
+	$('.changepassword').click(function(e){
+		// $("#"+idparam).qtip("hide");
+		e.preventDefault();
+		
+		// popup title
+		$(".modal-header h3").html($(this).attr('rel'));
+		// load content
+		$("#dialogcontent").html($("#dialogbody #loading").html());
+		$("#dialogcontent").load($(this).attr('href'));  	
+		// then show it after the changes have been made
+		$('#dialog').modal('toggle');
+
+		// save dialog
+		$('#save').on('click', function(e){
+			// $('#dialog').modal('hide');
+			if ($("#indexform").valid() == true) {
+				bootbox.confirm('<label class="blockcontainer">Are you sure you want to change your Password? <br /><br />Click <b>OK</b> to proceed, and <b>Cancel</b> to ignore</label>', function(confirmed) {
+					if(confirmed){
+						// disable buttons
+						$(".modelcancel").hide();
+						$(this).hide();
+						// post form
+						$.post(  
+							"<?php echo $this->baseUrl("profile/processchangepassword"); ?>",  
+							$("#indexform").serialize(),  
+							function(data){
+								// alert(data);
+								location.reload(true);
+							}  
+						); // close the $.post
+						$("#dialogcontent").hide(); 										
+						$("#dialogbody #loading").show();
+					} else {
+						return false;
+					}
+				});
+			}
+		});
+		// cancel model
+		$(".modelcancel").on('click', function(e){
+			$("#dialog").modal('hide');
+		});		
+		$('#dialog').on('hidden', function () {
+			// location.reload(true);
+			$(".dialog, body").css("overflow", "auto");
+		});
+		$(".dialog, body").css("overflow", "hidden");
+		 
+		return false;
+	});
+	
+	$("a.gonowhere").each(function(){
+		$(this).attr('href', 'javascript: void(0)');
+	});
+}); 
+//Use window.load and not document.ready for effective equal heights
+$(window).load(function() {
+	//Make columns equal
+	equalHeight($("#leftcolumn, #centercolumn"));
+	$("#contentcolumn").css({'height':'auto'});
+	
+}); 
+</script>
+</head>
+<?php 
+	$thecontroller = $request->getControllerName();
+	$theaction = $request->getActionName();
+	$publiccontrollers = array("index", "signup","aboutus","howitworks","benefits","news","help","user","tour","forum","faqs","testimonials","billing"); 
+	if(isEmptyString($userid)){
+		$publiccontrollers[] = 'contactus';
+	}
+	
+	$bodyclass = '';
+	$bodyclassonly = '';
+	$isInnerPage = false;
+	if (in_array($thecontroller, $publiccontrollers)){
+		$bodyclass = ' class="publicbody"';
+		$bodyclassonly = ' publicbody';
+	} else {
+		$isInnerPage = true;
+	}
+?>
+<body data-spy="scroll" data-target=".subnav" data-offset="50"<?php echo $bodyclass; ?>>
+<!--Header Container-->
+<div class="navbar xnavbar-fixed-top" id="headerwrapper">
+    <div id="headertop" class="">
+        <?php require_once APPLICATION_PATH.'/views/scripts/index/headertop.phtml'; ?>
+    </div>
+    <div id="header" class="">
+        <?php require_once APPLICATION_PATH.'/views/scripts/index/header.phtml'; ?>
+    </div>
+    <div id="navigation" class="">
+        <?php require_once APPLICATION_PATH.'/views/scripts/index/navigation.phtml'; ?>	
+    </div>
+</div>
+<?php if($request->getParam('controller') == 'index' && $request->getParam('action') == 'index'){ ?>
+	<?php require_once APPLICATION_PATH.'/views/scripts/index/slides.phtml'; ?>
+<?php } ?>
+<!--Main Container-->
+<div class="container prettyprint linenums" id="maincontainer">
+	<div class="row-fluid" id="contentwrapper">
+		<div class="" id="contentcolumn"><?php echo $this->layout()->content; ?></div>
+    </div>
+</div>
+<!--Footer Container-->
+<footer class="footer well <?php echo $bodyclassonly; ?>"><?php require_once APPLICATION_PATH.'/views/scripts/index/footer.phtml'; ?></footer>
+<div class="modal hide" id="dialog">
+    <div class="modal-header">
+    	<button type="button btn" class="close" data-dismiss="modal">&times;</button>
+    	<h3>New Window</h3>
+    </div>
+	<div class='modal-body' id="dialogbody">
+        <a id="loading" class="hidden"><img style="margin-left:250px;" src="<?php echo $this->baseUrl('images/loader.gif'); ?>" /></a>
+        <div id="dialogcontent"></div>
+	</div>
+	<div class="modal-footer">
+    	<div id="new">
+		<a href="javascript:doNothing();" class="btn modelcancel" data-dismiss="modal" title="<?php echo $this->translate('global_button_cancel'); ?>"><i class="icon-remove"></i> <?php echo $this->translate('global_button_cancel'); ?></a>
+		<button type="submit" class="btn btn-primary" id="save" onclick="javascript:doNothing();"><i class="icon-ok icon-white"></i> <?php echo $this->translate('global_button_save'); ?></button>
+        </div>
+        <div id="view" class="hide">
+            <a href="javascript:doNothing();" class="btn modelcancel" data-dismiss="modal" title="<?php echo $this->translate('global_button_close'); ?>"><i class="icon-remove"></i> <?php echo $this->translate('global_button_close'); ?></a>
+            <button type="submit" class="btn btn-primary" id="save" onclick="javascript:doNothing();"><i class="icon-pencil icon-white"></i> <?php echo $this->translate('global_button_edit'); ?></button>
+        </div>
+	</div>
+</div>
+<a id="loading" class="hidden"><img style="margin-left:250px;" src="<?php echo $this->baseUrl('images/loader.gif'); ?>" /></a>
+<a id="wait" class="hidden blocked centeralign"><img src="<?php echo $this->baseUrl('images/loader.gif'); ?>" /></a>
+<div class="hidden" id="printer_page_action_buttons"><a title="Close Window" onClick="window.close()" > <img src="<?php echo $this->baseUrl('images/close.png'); ?>" width="16" height="16" alt="Close Window"> </a> &nbsp;&nbsp; <a title="Print" onClick="window.print()" > <img src="<?php echo $this->baseUrl('images/printer.png'); ?>" width="16" height="16" alt="Print"> </a> </div>
+</body>
+</html>

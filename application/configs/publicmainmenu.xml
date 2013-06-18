@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configdata>
+	<home>
+		<label>menu_home</label>
+		<controller>index</controller>
+		<id>home</id>
+	</home>
+	<aboutus>
+		<label>menu_aboutus</label>
+		<controller>aboutus</controller>
+		<id>aboutus</id>
+	</aboutus>
+	<writers>
+		<label>menu_writers</label>
+		<controller>aboutus</controller>
+		<action>writer</action>
+		<id>writer</id>
+	</writers>
+	<agents>
+		<label>menu_agents</label>
+		<controller>aboutus</controller>
+		<action>agent</action>
+		<id>agent</id>
+	</agents>
+	<gethelp>
+		<label>menu_gethelp</label>
+		<controller>help</controller>
+		<id>help</id>
+	</gethelp>
+	<faqs>
+		<label>menu_faqs</label>
+		<controller>faqs</controller>
+		<id>faqs</id>
+	</faqs>
+	<contactus>
+		<label>menu_contactus</label>
+		<controller>contactus</controller>
+		<id>contactus</id>
+	</contactus>
+</configdata>

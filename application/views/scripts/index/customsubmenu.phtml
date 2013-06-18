@@ -1,0 +1,56 @@
+<?php
+# only render the submenu if there are pages
+$html = "";
+$html .= '<ul class="submenu">';
+$pages = $this->container->getPages();
+foreach ( $pages as $page ) {
+	$html .= renderPage($page, $this);
+}
+$html .= '</ul>';
+
+echo $html;
+
+function renderPage($page, $view) {
+	$page_html = "";
+	// check if the user is allowed to see the page
+	// add false as the second parameter so that if the ACL does not allow access to the parent page
+	// the page can still be displayed. This is possible since the menus are repeated
+	// in muliple places
+	if ($view->navigation()->accept($page, false)) {
+		// check if it is active (not recursive)
+		$classArray = array($page->class);
+		if($page->isActive(true)){
+			$classArray[] = 'active';
+		}
+		// id of the menu item
+		$id_html = '';
+		if (!isEmptyString($page->id)) {
+			$id_html = ' id="'.$page->id.'" ';
+		}
+		$page_html .= '<li class="'.implode(array_filter($classArray), ' ').'"'.$id_html.' >';
+		
+		$params = $page->getParams();
+		$request = Zend_Controller_Front::getInstance()->getRequest();
+		//debugMessage($params);
+		$var_id_keys = array_keys($params, "var_id");
+		//debugMessage($var_id_keys);
+		if(!$var_id_keys) {
+			// do nothing cause not matching keys
+		} else {
+			foreach($var_id_keys as $key) {
+				$params[$key] = $request->id;
+			}
+			$page->setParams($params);
+		}
+		
+		$page_html .= '<a href="'.$page->getHref().'" title="' . $view->escape ($view->translate ($page->label)) . '">';
+		// add an image if it exists
+		if (! isEmptyString ($page->img)) {
+			$page_html .= '<img src="' . $view->baseUrl($page->img) . '" alt="' . $view->escape($view->translate($page->label)) . '">';
+		}
+		$page_html .= $view->escape ($view->translate($page->label) );
+		$page_html .= '</a>';
+	}
+	return $page_html;
+}
+?>

@@ -1,0 +1,79 @@
+<?php 
+   $html =  '<ul id="mainmenu" class="nav">'; 
+   foreach ($this->container as $page) {
+   		// check if the user is allowed to see the page
+		// add false as the second parameter so that if the ACL does not allow access to the parent page
+		// the page can still be displayed. This is possible since the menus are repeated
+		// in muliple places
+   		$html .= renderPage($page, $this); 
+	   	if ($page->hasPages()) {
+   			$subpages = $page->getPages(); 
+   			$submenu_html = ''; 
+   			foreach ($subpages as $subpage) {
+   				$submenu_html .= renderPage($subpage, $this); 
+   			}
+   			// create a submenu only if the submenus are accessible 
+   			if (!isEmptyString($submenu_html)) {
+   				$html .= '<ul class="dropdown-menu submenu">'; 
+   				$html .= $submenu_html; 
+   				$html .= '</ul>';
+   			}
+   			 
+   		}
+	 }
+    $html .= '</ul>';
+    echo $html; 
+    
+     /**
+    * Generate the HTML for a menu item 
+    * 
+    * @param Zend_Navigation_Page $page
+    * @param Zend_View $view
+    */ 
+   function renderPage($page, $view) {
+		$page_html = "";
+		// check if the user is allowed to see the page
+		// add false as the second parameter so that if the ACL does not allow access to the parent page
+		// the page can still be displayed. This is possible since the menus are repeated
+		// in muliple places
+		// check if the user is allowed to see the page
+   		if($view->navigation()->accept($page, true)) {
+	   		// additional classes for the element
+	        $classArray = array();
+	        if (!isEmptyString($page->class)) {
+	        	$classArray[] = $page->class; 
+	        }
+	        // check if it is active also checking the child pages
+			if($page->isActive(true)){
+				$classArray[] = 'active';
+			}
+	        $page_html .= '<li';
+	        if (!$classArray) {
+	        	// no classes so do nothing
+	        } else {
+	        	$page_html .= ' class="'.implode($classArray, ' ').'"'; 
+	        } 
+   			// add the id of the menu if specified
+	        if (!isEmptyString($page->id)) {
+	        	$page_html .= ' id="'.$page->id.'" '; 
+	        }
+   			
+	        $page_html .= '>';
+			$page_html .= '<a href="'.$page->getHref().'" title="'.$view->escape($view->translate($page->label)).'"';
+   			if (!isEmptyString($page->datatoggle)) {
+	        	$page_html .= ' data-toggle="'.$page->datatoggle.'" '; 
+	        }
+   			if (!isEmptyString($page->aclass)) {
+	        	$page_html .= ' class="'.$page->aclass.'" '; 
+	        }
+			$page_html .= '>';
+			// add an image if it exists
+	   		if (!isEmptyString($page->img)) {
+				$page_html .= '<img src="'. $view->baseUrl($page->img) .'">';
+			}
+			$page_html .= $view->escape($view->translate($page->label));
+			$page_html .= '</a>'; 
+   		} 
+		return $page_html;
+	}
+?>

@@ -1,0 +1,236 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	
+	# Page title
+	$title = $this->translate("contact_pagetitle_list");
+	$this->headTitle($title);
+	
+	$list_title = "All Contacts";
+	$searched = false;
+	if(!isEmptyString($request->searchterm)){
+		$list_title = "Contacts: ".$request->searchterm;
+		$searched = true;
+	}
+	
+	# Create an instance of the class to handle the pagination
+	$paginate = new Pagination();	
+	$paginate->setView($this);
+	# set the search columns to be used on this list
+	$paginate->setSearchColumns(array("c.firstname", "c.firstname", "c.othernames", "c.orgname", "c.phone", "c.address", "b.name"));
+	$paginate->setFilterColumns(array("c.locationid","g.categoryid", "c.categoryid", "c.contacttype", "c.farmerid", "c.farmgroupid"));
+	$paginate->setDefaultSortBy("c.datecreated");	
+	$paginate->setDefaultSortOrder("DESC");	
+	$paginate->setItemCountPerPage("25");
+	
+	# define the letter to be clicked to ease navigation 
+	$where_query = "";	
+	if (!isEmptyString($request->letter)){
+		$where_query .= " AND (`c`.`orgname` LIKE '".$request->letter."%' OR `c`.`firstname` LIKE '".$request->letter."%') ";
+		$searched = true;
+	}
+	
+	$thefarmerid = "";
+	$thefarmergroupid = "";
+	$farmgroup_query = "";
+	if(isFarmer()){
+		$thefarmerid = $farmerid;
+		if(!isEmptyString($farmergroupid)){
+			$thefarmergroupid = $farmergroupid;
+			$farmgroup_query = " OR c.farmgroupid = '".$thefarmergroupid."' ";
+		}
+		
+		if(isEmptyString($request->getParam('show')) || $request->getParam('show') == 1){
+			$request->setParam('show', '1'); 
+			$where_query .= " AND `c`.`farmerid` = '".$thefarmerid."' ";
+		} else {
+			$where_query .= " AND (c.visibility = 3 ".$farmgroup_query.") ";
+		}
+	}
+	
+	if(isAdmin()){
+		if(isEmptyString($request->getParam('show')) || $request->getParam('show') == 3){
+			$request->setParam('show', '3'); 
+			$where_query .= " ";
+		} else {
+			$where_query .= " AND `c`.`farmerid` = '".$thefarmerid."' ";
+		}
+	}
+	
+	$paginate->processPost($request->getParams());
+	$all_results_query = "SELECT c.id, c.contacttype, if(contacttype = '1' , CONCAT(c.firstname,' ',c.lastname,' ',c.othernames), c.orgname) as `Name`, if(contacttype = '1' , 'Person','Company') as `Contact Type`, c.categoryid as categoryid, b.name as `Category`, c.phone as `Phone`, c.phone2 as `Alt Phone`, email as `Email`, address as `Address`, c.goodsorservicesoffered, group_concat(b.name separator ',') as `Sub Categories`  FROM contact c LEFT JOIN contactcategory g ON (g.contactid = c.id) LEFT JOIN businessdirectorycategory b ON (c.categoryid = b.id) WHERE c.id <> '' ".$where_query."".$paginate->getSearchAndFilterSQL()." GROUP BY c.id ".$paginate->getSortSQL();
+	
+	// debugMessage($all_results_query);
+	$paginate->setItemCountFromSQLQuery($all_results_query);
+	
+	$current_results_query = $all_results_query." ".$paginate->getSQLLimit();
+	//echo $current_results_query;
+	$session->setVar(ALL_RESULTS_QUERY, $all_results_query);
+	$session->setVar(CURRENT_RESULTS_QUERY, $current_results_query);
+	# the query string to be appended to the return to list URL
+	$session->setVar('list_query_string'.$request->getControllerName(), $request->getParams());
+	
+	$conn = Doctrine_Manager::connection(); 
+	$result = $conn->fetchAll($current_results_query);
+	$has_no_data = (count($result) == 0) ? true : false; 
+
+?>
+<script>
+	$(document).ready(function(){		
+		// set hidden field for the alphabet and submit the form
+		$(".alphabet").click(function(){
+			var letter = $(this).attr('id');
+			// alert(letter);
+			$('#letter').val(letter);
+			$("#listform").submit();
+		});
+		
+	}); 
+</script>
+<style>
+
+</style>
+<div>
+	<?php require APPLICATION_PATH."/views/scripts/index/leftcolumn.phtml"; ?>
+    <div id="centercolumn">
+        <form action="<?php echo $this->baseUrl("contact/listsearch"); ?>" method="get" id="listform" class="form-search">
+    	<h1><?php echo $title; ?></h1>
+        <div class="wellcontent" style=" margin-top:-10px;">
+            <div class=" blocked clear" style="position:relative; margin-top:25px;">
+            	<div class="advsearch" style="display:block; float:right; text-align:right; position:absolute; right:20px; top:10px; width:195px;">
+                    <a href="javascript: void(0)" id="advanced" class="btn btn-primary btn-mini pull-right" title="Advanced Search">Advanced Search <span class="caret"></span></a>&nbsp;&nbsp;
+                    <?php if($searched){ ?>
+                    <a href="<?php echo $this->baseUrl('contact/list'); ?>" id="reset" class="btn btn-primary btn-mini pull-left" title="Reset list or clear all filters">Reset</a>&nbsp;&nbsp;
+                    <?php } ?>
+                    
+            	</div>
+                <ul id="searchbox">
+                    <li>
+                        <a style="padding-left:0; padding-right:0; width:100%;">
+                            <table id="directorysearchtable" class="table noborder margin0">
+                                <tr>
+                                    <td style="width:60px;">                                    
+                                        <a href="<?php echo $this->baseUrl('contact/add/pgc/true/farmerid/'.encode($thefarmerid)); ?>" class="addpopup addcontact btn btn-primary btn-mini" title="New Contact" rel="New Contact" id="newcontact" formtitle="indexform" successurl="<?php echo $this->baseUrl('contact/list'); ?>" action="<?php echo $this->baseUrl("contact/create"); ?>"><i class="icon-plus icon-white"></i> New</a>
+                                    </td>
+                                    <td style="width:100px; padding-left:2px; padding-right:2px;">
+                                        <!--<label class="control-label">Show:</label>-->
+										<?php
+                                            $showtypes = array("1"=>"My Contacts", "3"=>"Any Other");
+                                            $showdropdown = new Zend_Form_Element_Select('show',
+                                                                array(
+                                                                    'multiOptions' => array_merge_maintain_keys($showtypes),
+                                                                    'view' => new Zend_View(),
+                                                                    'decorators' => array('ViewHelper'),
+                                                                    'class' => array('width125','autofilter'),
+                                                                    'title' => 'Filter Contacts'		
+                                                                )
+                                            );  
+                                            $showdropdown->setValue($request->getParam('show')); 
+                                            echo $showdropdown->render();
+                                        ?>
+                                    </td>
+                                    <td style="width:150px;padding-left:2px; padding-right:2px;">
+                                    	<?php
+											# lookup for business categories
+											$categorylookup = new LookupType();
+											$categorylookup->setName("ALL_BUSINESS_DIRECTORY_CATEGORIES");
+											
+											$cat = new Zend_Form_Element_Select('g'.HTML_TABLE_COLUMN_SEPARATOR.'categoryid',
+															array(
+																'multiOptions' => array_merge_maintain_keys(array('' => 'All Categories'), $categorylookup->getOptionValuesFromQuery()),								
+																'view' => new Zend_View(),
+																'decorators' => array('ViewHelper'),
+																'class' => array("filterselect", 'autofilter', 'width150'),
+																'title' => 'Filter Contacts By Category'
+															)
+														);
+											$cat->setValue($request->getParam('g'.HTML_TABLE_COLUMN_SEPARATOR.'categoryid')); 				
+											echo $cat->render(); 
+										  ?>
+                                    </td>                                   
+                                    <td style="padding:31px 3px 0 0; text-align:right;">
+                                        <input type="hidden" name="advanced" id="advanced" value="<?php echo $request->getParam('advanced'); ?>" />
+                                        <input style="width:150px;" name="searchterm" id="searchterm" value="<?php echo $request->searchterm; ?>" type="text" class="input-medium xsearch-query span2 pull-right" placeholder="Search Contacts"></td>
+                                    <td style="padding:31px 3px 0 0; text-align:left;">
+                                        <button type="submit" id="searchbutton" class="btn" style="padding:6px 10px"><i class="icon-search"></i></button>
+                            			<input type="hidden" name="letter" id="letter" value="<?php echo $request->getParam('letter'); ?>" />                                
+                                    </td>
+                                </tr>
+                            </table>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="alphabetlist pull-left blocked clear"><a href="<?php echo $this->baseUrl("contact/list/"); ?>" title="All Contacts">All</a>&nbsp;&nbsp;|&nbsp;&nbsp;<?php echo $paginate->getAlphabetString(); ?></div>
+            <?php if(!isEmptyString($session->getVar(SUCCESS_MESSAGE)) ){ ?>
+                <div class="alert alert-success margin0 blocked clear"><a class="close" data-dismiss="alert">×</a><?php echo $session->getVar(SUCCESS_MESSAGE); ?></div>
+            <?php } ?>
+            <div class="paginatelisttop maxwidth blocked clear">
+            	<label class="listlabel pull-left control-label 30width lineblocked" style="text-align:left;"><?php echo $list_title; ?></label>
+                <?php if (!$has_no_data) { ?>
+            	<div class="paginatecustom pull-right lineblocked"><?php echo sprintf($this->translate("contact_list_counter"), $paginate->getItemCounterText()); ?></div>
+                <?php } ?>
+            </div>
+            
+			<?php if ($has_no_data) { ?>
+            	<div style="clear:both;" class="alert alert-info margin0 blocked clear"><?php echo $this->translate("contact_list_norecords"); ?></div>
+            <?php } else { ?>
+            
+                <ul id="datalist" class="nav nav-stacked">
+					<?php 				  		
+                        foreach($result as $line){
+							$contact = new Contact();
+							$contact->populate($line['id']);
+                    ?>
+                    <li>
+                        <table class="table noborder margin0">
+                            <tr>                                
+                                <td width="15%"><a href="<?php echo $this->baseUrl("contact/view/id/".encode($line['id'])); ?>" title="Details"><img style="width:100px;" src="<?php echo $contact->getContactType() == 1 ? $this->baseUrl('images/contactperson.png') : $this->baseUrl('images/contactorg.png') ; ?>" /></a>
+                                    </td>
+                                    <td class="padding0">
+                                        <div style="position:relative;">
+                                            <table class="itemlist table noborder margin0">
+                                                <tr>
+                                                    <td colspan="4"><h2 style="font-size:15px;"><a href="<?php echo $this->baseUrl("contact/view/id/".encode($line['id'])); ?>" title="<?php echo "View ".$contact->getName()."'s Profile"; ?>"><?php echo $contact->getName(); ?></a></h2>
+                                                    </td>
+                                                    <td class="actionbuttons" rowspan="4" style="padding-top:5px;">
+                                                        <a class="btn btn-primary btn-mini" style="position:absolute; top:5px; right:20px;" href="<?php echo $this->baseUrl("contact/view/id/".encode($contact->getID())); ?>">View Details</a>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td width="90"><label class="control-label">Phone: </label></td>
+                                                    <td width="140" class="nowrapping"><span><?php echo $contact->getPhone(); ?></span></td>
+                                                    <td width="60"><label class="control-label">District: </label></td>
+                                                    <td width="100" class="nowrapping"><span><?php echo isEmptyString($contact->getLocationID()) ? '--' : $contact->getLocation()->getName(); ?></span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><label class="control-label">Email:</label></td>
+                                                    <td class="nowrapping"><span><?php echo isEmptyString($contact->getEmail()) ? '--' : $contact->getEmail(); ?></span></td>
+                                                    <td><label class="control-label">Address: </label></td>
+                                                    <td class="nowrapping"><span><?php echo isEmptyString($contact->getAddress()) ? '--' : $contact->getAddress(); ?></span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><label class="control-label">Category:</label></td>
+                                                    <td class="nowrapping"><span><?php echo isEmptyString($contact->getCategoryName()) ? '--' : $contact->getCategoryName(); ?></span></td>
+                                                    <td><label class="control-label">Tags: </label></td>
+                                                    <td class="nowrapping"><span><?php echo isEmptyString($contact->getCategoryList()) ? '--' : $contact->getCategoryList(); ?></span></td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </td>
+                            </tr>
+                        </table>
+                    </li>
+                	<?php } ?>    
+            	</ul>
+            <?php echo $paginate->getPaginationLinks(); ?>  
+            <?php } ?>
+			
+		</div>
+        
+        </form>
+    </div>
+</div>    
+<?php
+	$session->setVar(SUCCESS_MESSAGE, "");
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

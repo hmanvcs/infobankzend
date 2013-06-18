@@ -1,0 +1,72 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	
+	$title = "Invite Relatives";
+	
+	$theid = decode($request->id);
+	if(isEmptyString($theid)){
+		$theid = $personid;
+	}
+	$person = new Person();
+	$person->populate($theid);
+	
+	$uninvited = $person->getUnInvitedPeople();
+	$no_uninvited = $uninvited->count();
+	// debugMessage($uninvited->toArray());
+	
+	$this->headTitle($title);
+	
+?>
+<script>
+	$(document).ready(function() {
+		
+	}); 
+</script>
+<style>
+body {
+	overflow:hidden;
+}
+.table td {
+	vertical-align:middle;
+}
+</style>
+<div id="popupdiv">
+<form class="form-horizontal well span6" id="inviteform" method="post" style="max-height:400px; overflow-y:scroll;">
+    <table class="table margin0 border0">
+		<?php if($sessionhaserror) { ?>
+	        <tr>
+	        	<td colspan="2"><div class="alert alert-error"><?php echo $session->getVar(ERROR_MESSAGE); ?></div></td>
+	        </tr>
+        <?php } ?>
+        <tbody>
+        	<?php if($no_uninvited == 0){ ?>
+            	<tr>
+                	<td colspan="3">You currently have got no Invited relatives</td>
+                </tr>
+            <?php } else { ?>
+            	<?php 
+					foreach($uninvited as $profile){ 
+						$firstname = $profile->getFirstName();
+				?>
+                <tr>
+                	<td width="120" class="nowrapping"><?php echo $profile->getName(); ?></td>
+                    <td>
+                    	<span class="inv_before" id="inv_before_<?php echo $profile->getID(); ?>">
+                            <input type="text" name="email_<?php echo $profile->getID(); ?>" id="email_<?php echo $profile->getID(); ?>" placeholder="enter email" title="Invite <?php echo $firstname; ?> to your Family Tree" value="<?php echo $profile->getEmail(); ?>" class="invite autoinvite invite_<?php echo $profile->getID(); ?>" /><a href="javascript:doNothing();" class="btn btn-primary btn-gold invitetrigger" id="invite_<?php echo $profile->getID(); ?>" title="Invite <?php echo $firstname; ?> to join <?php echo $this->translate('appname'); ?>"><i class="icon-envelope"></i> <?php echo $this->translate('person_button_invite'); ?></a>
+                            <label class="hide invite_<?php echo $profile->getID(); ?>" title="<?php echo $personid; ?>"><?php echo $profile->getID(); ?></label>                            
+                            <div id="invite_<?php echo $profile->getID(); ?>_error" style="margin-top:4px;"></div>
+                        </span>
+                        <span class="inv_after" id="inv_after_<?php echo $profile->getID(); ?>">
+                            <a id="loading_<?php echo $profile->getID(); ?>" class="hidden"><img style="margin-left:0" src="<?php echo $this->baseUrl('images/loader.gif'); ?>" /></a>
+                        </span>
+                    <td></td>
+                </tr>
+				<?php } ?>
+            <?php } ?>
+        </tbody>
+  </table>
+</form>
+</div>
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

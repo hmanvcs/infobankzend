@@ -1,0 +1,18 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	
+	$title = sprintf($this->translate("global_access_denied_page_title"));
+	$this->headMeta()->appendName('keywords', '');
+	$this->headMeta()->appendName('description', $title);
+	$this->headTitle($title); 
+?>
+<br /><br />
+<div class="alert alert-error span7 offset2">
+	<b><?php echo $title; ?></b><br /><br />
+    <b>You do not have sufficient permissions to view this page.</b><br /><br />
+    Please contact the System Administrator or Click the 'Back' button below to go back to return to the previous page.<br /><br />
+    <a href="javascript:history.go(-1)" class="btn"><i class="icon-arrow-left"></i> Back</a><br /><br />
+</div>
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

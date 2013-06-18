@@ -1,0 +1,253 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	
+	$title = "Customer Directory";	
+	$this->headTitle($title);
+	
+	$searchnames = '';
+	if(!isEmptyString($request->firstname)){
+		$searchnames .= $request->firstname;
+	}
+	if(!isEmptyString($request->lastname)){
+		$searchnames .= " ".$request->lastname;
+	}
+	
+	if (!isEmptyString($request->letter)){
+		$searchnames .= "Browse By: <b>".strtoupper($request->letter)."</b>";
+	}
+	
+	$paginate = new Pagination();	
+	$paginate->setView($this);
+	# set the search columns to be used on this list
+	$paginate->setSearchColumns(array("u.firstname","u.lastname","u.othernames","u.email","u.phone","u.phone2"));
+	$paginate->setFilterColumns(array("u.gender"));
+	// $paginate->setDefaultSortBy("u.datecreated");	
+	// $paginate->setDefaultSortOrder("DESC");
+	$paginate->setItemCountPerPage("25");
+	
+	# define the letter to be clicked to ease navigation 
+	$where_query = " WHERE u.id <> '' ";
+	
+	if(!isEmptyString($request->firstname)){
+		$where_query .= " AND (u.firstname LIKE '%".$request->firstname."%') ";
+	}
+	if(!isEmptyString($request->lastname)){
+		$where_query .= " AND (u.lastname LIKE '%".$request->lastname."%') ";
+	}
+	if(!isEmptyString($request->othernames)){
+		$where_query .= " AND (u.othernames LIKE '%".$request->othernames."%') ";
+	}
+	
+	if(!isEmptyString($request->letter)){
+		$where_query .= " AND (u.`firstname` LIKE '".$request->letter."%' OR u.`lastname` LIKE '".$request->letter."%') ";
+	}
+	
+	$listurl = $this->baseUrl('profile/list');
+	
+	$order = trim($request->order);
+	$order_query = " ";
+	if(isEmptyString($order)){
+		$order = 1;
+	}
+	if($order == 1){
+		$order_query = " ORDER BY u.datecreated DESC ";
+	}
+	if($order == 2){
+		$order_query = " ORDER BY u.firstname ASC ";
+	}
+	if($order == 3){
+		$order_query = " ORDER BY u.lastname ASC ";
+	}
+	if($order == 4){
+		$order_query = " ORDER BY u.datecreated ASC ";
+	}
+	$groupstring = "";
+	
+	$paginate->processPost($request->getParams());
+	$all_results_query = "SELECT u.*, u.email as email, u.phone as phone, u.phone2 as altphone FROM useraccount u ".$where_query." AND u.type = 2 ".$paginate->getSearchAndFilterSQL()." GROUP BY u.id ".$order_query;
+	
+	// debugMessage($all_results_query);
+	$paginate->setItemCountFromSQLQuery($all_results_query);
+	$current_results_query = $all_results_query." ".$paginate->getSQLLimit();
+	
+	$conn = Doctrine_Manager::connection(); 
+	$result = $conn->fetchAll($current_results_query);
+	$has_no_data = (count($result) == 0) ? true : false; 
+	
+?>
+<script>
+$(document).ready(function() {
+	// set hidden field for the alphabet and submit the form
+	$(".alphabet").click(function(){
+		var letter = $(this).attr('id');
+		// alert(letter);
+		$('#letter').val(letter);
+		$("#listform").submit();
+	});
+}); 
+</script>
+<style>		
+.alert.alert-success {
+	clear:both;
+}
+.namelabel {
+	font-weight:normal;
+	font-size:14px;
+}
+</style>
+<div>
+	<?php require APPLICATION_PATH."/views/scripts/index/leftcolumn.phtml"; ?>
+    <div id="centercolumn">
+        <form action="<?php echo $this->baseUrl("profile/listsearch"); ?>" method="get" id="listform" class="form-search">
+    	<h1><?php echo $title; ?><?php echo $groupstring; ?></h1>
+        <div class="wellcontent" style=" margin-top:-10px;">
+            <div class=" blocked clear" style="position:relative; margin-top:25px;">
+            	<div class="advsearch" style="display:block; float:right; text-align:right; position:absolute; right:0; top:10px; width:60px;">
+                    <a href="<?php echo $listurl; ?>" id="reset" class="btn btn-primary btn-mini pull-left" title="Reset list or clear all filters">Reset</a>&nbsp;&nbsp;
+                    
+            	</div>
+                <ul id="searchbox">
+                    <li>
+                        <a style="padding-left:0; padding-right:0; width:100%;">
+                            <table id="directorysearchtable" class="table noborder margin0">
+                                <tr>
+                                    <td style="width:55px; padding-top:6px; padding-left:2px; padding-right:2px;">                                    
+                                       <?php if(isAdmin()){ ?>
+                                       		<a href="<?php echo $this->baseUrl('profile/add/pgc/true'); ?>" class="addpopup adduser btn btn-primary btn-mini" title="New User" rel="New User" id="newuser" formtitle="indexform" successurl="<?php echo $listurl; ?>" action="<?php echo $this->baseUrl("profile/create"); ?>"><i class="icon-plus icon-white"></i> New</a>
+                                       <?php } ?>     
+                                    </td>
+                                    <td style="width:100px; padding-left:4px; padding-right:2px;">
+                                        <label class="control-label">Gender:</label>
+                                        <?php
+                                            $allgenders = array('' => 'All','1'=>'Male','2'=>'Female');
+                                            $genderdropdown = new Zend_Form_Element_Select('u'.HTML_TABLE_COLUMN_SEPARATOR.'gender',
+                                                                array(
+                                                                    'multiOptions' => $allgenders,
+                                                                    'view' => new Zend_View(),
+                                                                    'decorators' => array('ViewHelper'),
+                                                                    'class' => array('gender','span2','autofilter'),
+                                                                    'title' => 'Filter By Gender'		
+                                                                )
+                                            );  
+                                            $genderdropdown->setValue($request->getParam('u'.HTML_TABLE_COLUMN_SEPARATOR.'gender')); 
+                                            echo $genderdropdown->render();
+                                        ?>
+                                    </td>
+                                    <td style="width:185px; padding-left:2px; padding-right:2px;">
+                                        
+                                    </td>
+                                    <td style="width:100px; padding-left:2px; padding-right:2px;">
+                                    	<label class="control-label">Ordering:</label>
+                                        <?php
+                                            $allorders = array('1' => 'Latest First', '2'=>'Alphabetical (Firstname)','3'=>'Alphabetical (Lastname)', '4'=>'Earliest First');
+                                            $ordersdropdown = new Zend_Form_Element_Select('order',
+                                                                array(
+                                                                    'multiOptions' => $allorders,
+                                                                    'view' => new Zend_View(),
+                                                                    'decorators' => array('ViewHelper'),
+                                                                    'class' => array('gender','span2','autofilter'),
+                                                                    'title' => 'Order list by'		
+                                                                )
+                                            );  
+                                            $ordersdropdown->setValue($request->getParam('order')); 
+                                            echo $ordersdropdown->render();
+                                        ?>
+                                    </td>                                   
+                                    <td style="padding:31px 3px 0 0; text-align:right;">
+                                        <input type="hidden" name="advanced" id="advanced" value="<?php echo $request->getParam('advanced'); ?>" />
+                                        <input style="width:150px;" name="searchterm" id="searchterm" value="<?php echo $request->searchterm; ?>" type="text" class="input-medium xsearch-query span2 pull-right" placeholder="Search Users"></td>
+                                    <td style="padding:31px 3px 0 0; text-align:left;">
+                                        <button type="submit" id="searchbutton" class="btn" style="padding:6px 10px;"><i class="icon-search"></i></button>
+                                        <input type="hidden" name="letter" id="letter" value="<?php echo $request->getParam('letter'); ?>" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </a>
+                    </li>
+                </ul>
+          </div>
+            <?php if(!isEmptyString($session->getVar(SUCCESS_MESSAGE))){ ?>
+                <div class="alert alert-success clear"><a class="close" data-dismiss="alert">×</a><?php echo $session->getVar(SUCCESS_MESSAGE); ?></div>
+            <?php } ?>
+            <?php if(!isEmptyString($session->getVar(ERROR_MESSAGE))){ ?>
+                <div class="alert alert-error clear"><?php echo $session->getVar(ERROR_MESSAGE); ?></div>
+            <?php } ?>
+            <div class="alphabetlist pull-left"><a href="<?php echo $listurl; ?>" title="All Users">All</a>&nbsp;&nbsp;|&nbsp;&nbsp;<?php echo $paginate->getAlphabetString(); ?></div>
+            <label style="text-align:left;" class="searchedterm control-label pull-left leftalign"><?php echo $searchnames; ?></label>
+            <?php if (!$has_no_data) { ?>
+            	<div class="paginatecustom"><?php echo sprintf($this->translate("profile_list_counter"), $paginate->getItemCounterText()); ?></div>
+            <?php } ?>
+			
+			<?php if ($has_no_data) { ?>
+            	<div style="clear:both;" class="alert alert-info margin5"><?php echo $this->translate("profile_list_norecords"); ?></div>
+            <?php } else { ?>
+                <ul id="datalist" class="nav nav-stacked">
+					<?php 				  		
+                        foreach($result as $line){
+                            $id = $line['id'];	
+                            $name = $line['firstname']." ".$line['lastname']." ".$line['othernames'];
+                            $firstname = $line['firstname'];
+							$lastname = $line['lastname'];
+							
+							$hasprofileimage = false;
+							$real_path = APPLICATION_PATH.DIRECTORY_SEPARATOR."..".DIRECTORY_SEPARATOR."public".DIRECTORY_SEPARATOR."uploads".DIRECTORY_SEPARATOR."user_";
+							$real_path = $real_path.$id.DIRECTORY_SEPARATOR."avatar".DIRECTORY_SEPARATOR."large_".$line['profilephoto'];
+							if(file_exists($real_path) && !isEmptyString($line['profilephoto'])){
+								$hasprofileimage = true;
+							}
+							$baseUrl = Zend_Controller_Front::getInstance()->getBaseUrl();
+							$photo_path = '';
+							if($line['gender'] == 1){
+								$photo_path = $baseUrl.'/uploads/user_0/avatar/default_thumbnail_male.jpg';
+							}  
+							if($line['gender'] == 2){
+								$photo_path = $baseUrl.'/uploads/user_0/avatar/default_thumbnail_female.jpg'; 
+							}
+							if($hasprofileimage){
+								$photo_path = $baseUrl.'/uploads/user_'.$id.'/avatar/thumbnail_'.$line['profilephoto'];
+							}
+                    ?>
+                    <li>
+                    	<a class="btn btn-primary btn-mini" style="position:absolute; top:10px; right:10px;" href="<?php echo $this->baseUrl("profile/view/id/".encode($id)); ?>">View Profile</a>
+                        <table class="table noborder margin0">
+                            <tr>                                
+                                <td width="75">
+                                    <div id="thumbinfo" class="<?php echo $hasprofileimage ? 'new_pic' : 'default_pic'; ?>"> 
+                                        <a href="<?php echo $this->baseUrl("profile/view/id/".encode($id)); ?>" title="View Profile"><img class="profileimage" src="<?php echo $photo_path; ?>" /></a>
+                                    </div>
+                                </td>
+                                <td class="padding0" style="vertical-align:top;">
+                                	<table class="itemlist table noborder margin0">
+                                        <tr>
+                                            <td colspan="5" style="padding:0;">
+                                                <h2><a href="<?php echo $this->baseUrl("profile/view/id/".encode($id)); ?>" title="<?php echo "View ".$firstname."'s Profile"; ?>"><?php echo $name; ?></a></h2>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width:70px;"><label class="control-label">Phone: </label></td>
+                                            <td style="width:180px;" class="nowrapping"><span><?php echo isEmptyString($line['phone']) ? '--' : getShortPhone($line['phone']); ?></span></td>
+                                            <td style="width:90px;"><label class="control-label">Email: </label></td>
+                                            <td style="width:240px;" class="nowrapping"><span><?php echo isEmptyString($line['email']) ? '--' : $line['email']; ?></span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><label class="control-label">Subscribed:</label></td>
+                                            <td class="nowrapping"><span><?php echo $line['isactive'] == 1 ? 'Yes' : 'No'; ?></span></td>
+                                            <td><label class="control-label">Date Registered:</label></td>
+                                            <td class="nowrapping"><span><?php echo $line['datecreated']; ?></td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </li>
+                	<?php } ?>    
+            	</ul>
+            	<?php echo $paginate->getPaginationLinks(); ?>  
+            <?php } ?>
+		</div> 
+       </form>         
+	</div>
+</div>
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

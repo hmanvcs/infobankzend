@@ -1,0 +1,28 @@
+<?php include(APPLICATION_PATH.'/views/scripts/email/emailheader.phtml'); ?>
+
+Dear <?php echo $this->firstname; ?>,<br /><br />
+
+This is to inform you that you have been invited by <b><?php echo $this->inviter; ?></b> to Join <?php echo $this->appname; ?>.<br /><br />
+
+<?php if($this->isfarmgroupmanager == 1){ ?>
+	You have been assigned a managerial role for the <b><?php echo $this->groupname; ?></b> Account and you will be required to carry out the following tasks;<br /><br />
+    - Update the account information to suit the current configuration.<br />
+    - Add new farmers to the group.<br />
+    - To invite the farmers to join  by specifying their email addresses.<br />
+    - Keep track of your farmer's activities.<br /><br />
+<?php } ?>
+
+<?php echo $this->appname; ?> is a simple tool to help farmers know what's happening on their farms. <br />
+Start saving time and money. Ditch the spreadsheets and paper records!<br /><br />
+
+In order to get started, you will have to activate your account first by clicking on link below:<br /><br />
+
+<?php echo $this->invitelink; ?><br /><br />
+
+If the page fails to open, copy the activation link and paste it in the address window of the browser.<br />
+
+After activating your account, you should be able to login using the your email address and password.<br /><br />
+
+If you need any further assistance or have any question, please feel free to <a href="<?php echo $this->serverUrl($this->baseUrl('contactus')); ?>" title="Contact us">Contact us</a><br /><br />
+
+<?php include(APPLICATION_PATH.'/views/scripts/email/emailfooter.phtml'); ?>

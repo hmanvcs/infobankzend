@@ -1,0 +1,27 @@
+<?php 
+	$controllername = $request->getControllerName();
+	$controlleraction = $request->getActionName();
+?>
+<div class="well" id="leftcolumn">
+	<div id="button">
+    	<h2 id="quicklink">Quick Links</h2>
+        <ul class="nav nav-tabs nav-stacked leftnav" id="leftnav">
+        <?php if(isAdmin()){ ?>
+        	<li><a clas="gonowhere"><i class="icon-list icon-white"></i> Manage Content</a></li>
+            <li><a clas="gonowhere"><i class="icon-list icon-white"></i> Manage Sectors</a></li>
+            <li><a clas="gonowhere"><i class="icon-list icon-white"></i> Manage Categories</a></li>
+            <li><a clas="gonowhere"><i class="icon-list icon-white"></i> Menu Definitions</a></li>
+            <li><a clas="gonowhere"><i class="icon-list icon-white"></i> Manage Resources</a></li>
+            <li><a clas="gonowhere"><i class="icon-list icon-white"></i> Manage Subscribers</a></li>
+            <li><a clas="gonowhere"><i class="icon-list icon-white"></i> Global Config</a></li>
+        <?php } ?>
+        <?php if(isSubscriber()){ ?>
+         	<li><a href="<?php echo $this->baseUrl('profile/view'); ?>"><i class="icon-list icon-white"></i> My Profile</a></li>
+            <li><a href="#<?php //echo $this->baseUrl('profile/view'); ?>"><i class="icon-list icon-white"></i> My Downloads</a></li>
+        	<li><a href="#" class="" id=""><i class="icon-list icon-white"></i> Link 1</a></li>
+			<li><a href="#" class="" id=""><i class="icon-list icon-white"></i> Link 2</a></li>
+            <li><a href="#" class="" id=""><i class="icon-list icon-white"></i> Link 3</a></li>
+        <?php } ?>
+        </ul>
+    </div>
+</div>

@@ -1,0 +1,12 @@
+<?php include(APPLICATION_PATH.'/views/scripts/email/emailheader.phtml'); ?>
+Dear <?php echo $this->firstname; ?>,<br /><br />
+
+We would like to welcome you to <?php echo $this->appname; ?>.<br /><br />
+
+This is to confirm that your Account has been successfully activated. <br /><br />
+
+You can login anytime at <?php echo $this->serverUrl($this->baseUrl()); ?> using your email address and password you provided during registration. <br /><br />
+
+If you need any further assistance or have any question, please feel free to <a href="<?php echo $this->serverUrl($this->baseUrl('contactus')); ?>" title="Contact us">Contact us</a><br /><br />
+
+<?php include(APPLICATION_PATH.'/views/scripts/email/emailfooter.phtml'); ?>

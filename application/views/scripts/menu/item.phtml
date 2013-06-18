@@ -1,0 +1,38 @@
+<?php
+	require_once APPLICATION_PATH.'/includes/header.php';
+	
+	$id = $this->itemid;
+	$menuitem = new MenuItem();
+	$menuitem->populate($id);
+	// debugMessage($menuitem->toArray());
+	
+	$title = $menuitem->getName();
+	$this->headTitle($this->translate("appname")." | ".$title); 
+	
+?>
+<div class="row margin0">
+	<h1><?php echo $menuitem->getDescription(); ?></h1>
+</div>
+<?php if($request->getParam('alias') == 'invest'){ ?>
+<div class="row margin0" style="margin-bottom:10px;">
+	<span class="span4 widgetsection" style="height:250px; margin-left:0; margin-right:10px;">
+    	<h3><a class="gonowhere">Agriculture</a></h3>
+    </span>
+    <span class="widgetsection" style="height:250px; width:63%; margin-right:10px; display:block; float:right;"></span>
+</div>
+<div class="row margin0" style="margin-bottom:10px;">
+	<span class="span4 widgetsection" style="height:250px; margin-left:0; margin-right:10px;">
+    	<h3><a class="gonowhere">Business and Finance</a></h3>
+    </span>
+    <span class="widgetsection" style="height:250px; width:63%; margin-right:10px; display:block; float:right;"></span>
+</div>
+<div class="row margin0" style="margin-bottom:10px;">
+	<span class="span4 widgetsection" style="height:250px; margin-left:0; margin-right:10px;">
+    	<h3><a class="gonowhere">Technology</a></h3>
+    </span>
+    <span class="widgetsection" style="height:250px; width:63%; margin-right:10px; display:block; float:right;"></span>
+</div>
+<?php } ?>
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

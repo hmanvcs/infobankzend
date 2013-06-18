@@ -1,0 +1,29 @@
+<?php
+	include APPLICATION_PATH.'/includes/header.php';
+	
+	// $menulist = getMainmenuList();
+	// debugMessage('cont is '.$thecontroller); // exit();
+?>
+<div class="container">
+	<ul class="mainmenu" id="mainmenu">
+    	<?php 
+			foreach($menulist as $key => $menuitem){ 
+				$menuurl = $this->baseUrl($menuitem['malias']);
+				$activeclass = '';
+					if($request->getParam('alias')  == $menuitem['malias']){
+						$activeclass = 'active';
+					}
+				
+		?>
+       		<li id="<?php echo $menuitem['mstyleclass']; ?>" class="<?php echo $menuitem['mstyleclass'].' '.$activeclass; ?>">
+            	<a href="<?php echo $menuurl; ?>">
+                	<span class="meni"><?php echo $menuitem['mname']; ?></span>
+                    <span class="description" style=""><?php echo $menuitem['alt']; ?></span>
+             	</a>
+            </li>	
+        <?php } ?>
+	</ul>
+</div>
+<?php
+	require_once APPLICATION_PATH.'/includes/footer.php';
+?>

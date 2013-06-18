@@ -1,0 +1,26 @@
+ <?php
+// initialize the ACL for all views
+$cache = Zend_Registry::get('cache');
+$nav = $cache->load('publicnavigation'); 
+if (!$nav) {
+	 // main menu navigation
+	 // load the configuration
+	$navConfig = new Zend_Config_Xml(APPLICATION_PATH.'/configs/publicmainmenu.xml');
+	// create a navigation instance
+	$nav = new Zend_Navigation($navConfig);
+	
+	// add it to the cache
+	$cache->save($nav, 'publicnavigation');
+} 
+
+// add it to the view
+$this->navigation($nav); 
+// access control 
+$this->navigation()->setAcl(getAclInstance());
+$this->navigation()->menu()->setPartial('index/custompublicmainmenu.phtml');
+// add the Zend_Translate instance
+$this->navigation()->menu()->setTranslator(Zend_Registry::get("Zend_Translate"));
+
+// render the high level menus only
+echo $this->navigation()->menu()->render();
+?>
